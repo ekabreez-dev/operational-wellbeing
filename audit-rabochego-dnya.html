@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Аудит рабочего дня — Operational Wellbeing</title>
+<meta name="description" content="За 3–5 минут узнайте, что больше всего влияет на вашу энергию, внимание и состояние в течение рабочего дня.">
+<style>
+
+  /* ============================================================
+     ТОКЕНЫ ДИЗАЙНА
+     Спокойная, приглушённая палитра — без ярких цветов и
+     инфобизнес-эстетики. Один акцент: глубокий шалфейный зелёный,
+     который отсылает к теме «энергия / восстановление».
+     ============================================================ */
+  :root{
+    --bg:            #F5F6F4;
+    --surface:       #FFFFFF;
+    --surface-2:     #EFF1EC;
+    --ink:           #181B19;
+    --ink-soft:      #5B615C;
+    --ink-faint:     #9AA098;
+    --line:          #E1E3DE;
+    --accent:        #3F5D50;
+    --accent-strong: #2F4A3E;
+    --accent-soft:   #E3EAE4;
+    --accent-line:   #B9CABE;
+    --radius-s:      10px;
+    --radius-m:      16px;
+    --radius-l:      24px;
+    --shadow-card:   0 1px 2px rgba(24,27,25,0.04), 0 8px 24px rgba(24,27,25,0.05);
+    --font:          -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    --ease:          cubic-bezier(.4,0,.2,1);
+  }
+
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  h1,h2,h3,p,ul,figure{ margin:0; }
+  button{ font-family:inherit; }
+
+  :focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+    border-radius:6px;
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  .eyebrow{
+    font-size:0.72rem;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+
+  /* ============================================================
+     ПРОГРЕСС
+     ============================================================ */
+  .progress-rail{
+    position:fixed;
+    top:0; left:0; right:0;
+    height:3px;
+    background:var(--line);
+    z-index:20;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width .4s var(--ease);
+  }
+
+  /* ============================================================
+     ЭКРАНЫ
+     ============================================================ */
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  /* ---------- Экран 1: Intro ---------- */
+  #screen-intro{
+    padding:96px 0 64px;
+    min-height:100vh;
+  }
+  .intro-title{
+    margin-top:18px;
+    font-size:clamp(2.1rem, 6vw, 3.1rem);
+    font-weight:650;
+    letter-spacing:-0.025em;
+    line-height:1.08;
+    color:var(--ink);
+  }
+  .tool-tagline{
+    margin-top:10px;
+    font-size:0.85rem;
+    color:var(--ink-faint);
+    letter-spacing:0.01em;
+  }
+  .intro-subtitle{
+    margin-top:20px;
+    font-size:1.15rem;
+    color:var(--ink-soft);
+    max-width:46ch;
+    line-height:1.5;
+  }
+  .intro-note{
+    margin-top:22px;
+    font-size:0.98rem;
+    color:var(--ink-faint);
+    font-style:italic;
+    max-width:44ch;
+  }
+
+  /* Сигнатурный элемент: «линия дня» — волна энергии/внимания,
+     которая рифмуется с радар-диаграммой результата. */
+  .day-curve{
+    margin:44px 0 8px;
+  }
+  .day-curve svg{ width:100%; height:auto; display:block; }
+  .day-curve path{
+    fill:none;
+    stroke:var(--accent-line);
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-dasharray:600;
+    stroke-dashoffset:600;
+    animation:draw-curve 1.6s var(--ease) .2s forwards;
+  }
+  @keyframes draw-curve{ to{ stroke-dashoffset:0; } }
+  .day-curve-labels{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.72rem;
+    color:var(--ink-faint);
+    letter-spacing:0.02em;
+    margin-top:6px;
+  }
+
+  .btn-primary{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    background:var(--accent);
+    color:#fff;
+    font-size:1rem;
+    font-weight:600;
+    padding:16px 28px;
+    border-radius:999px;
+    transition:background .18s var(--ease), transform .18s var(--ease);
+  }
+  .btn-primary:hover{ background:var(--accent-strong); }
+  .btn-primary:active{ transform:scale(0.98); }
+
+  .intro-cta{ margin-top:40px; }
+  .intro-meta{
+    margin-top:14px;
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+
+  /* ---------- Экран 2: Вопросы ---------- */
+  #screen-quiz{
+    padding:80px 0 80px;
+    min-height:100vh;
+  }
+  .quiz-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:28px;
+  }
+  .back-btn{
+    appearance:none;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    padding:6px 0;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    visibility:hidden;
+  }
+  .back-btn.visible{ visibility:visible; }
+  .back-btn:hover{ color:var(--ink); }
+
+  .quiz-counter{
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+
+  .question-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:36px 30px;
+    box-shadow:var(--shadow-card);
+    animation:fade-up .35s var(--ease);
+  }
+  @keyframes fade-up{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .question-mechanism{
+    margin-bottom:10px;
+  }
+  .question-text{
+    font-size:1.35rem;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    line-height:1.35;
+    color:var(--ink);
+  }
+
+  .options{
+    list-style:none;
+    padding:0;
+    margin:28px 0 0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .option-btn{
+    appearance:none;
+    width:100%;
+    text-align:left;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-s);
+    padding:15px 18px;
+    font-size:1rem;
+    color:var(--ink);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    transition:border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .option-btn:hover{ background:var(--surface-2); }
+  .option-btn.selected{
+    border-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .option-check{
+    width:20px; height:20px;
+    flex:0 0 auto;
+    border-radius:50%;
+    border:1.5px solid var(--line);
+    position:relative;
+  }
+  .option-btn.selected .option-check{
+    border-color:var(--accent);
+    background:var(--accent);
+  }
+  .option-btn.selected .option-check::after{
+    content:"";
+    position:absolute;
+    left:6px; top:2px;
+    width:5px; height:9px;
+    border:solid #fff;
+    border-width:0 2px 2px 0;
+    transform:rotate(45deg);
+  }
+
+  /* ---------- Экран 3: Результат ---------- */
+  #screen-result{
+    padding:80px 0 96px;
+    min-height:100vh;
+  }
+  .result-type{
+    margin-top:16px;
+    font-size:clamp(1.8rem, 5vw, 2.5rem);
+    font-weight:650;
+    letter-spacing:-0.02em;
+    line-height:1.14;
+  }
+  .result-lede{
+    margin-top:16px;
+    font-size:1.05rem;
+    color:var(--ink-soft);
+    max-width:52ch;
+  }
+  .result-model-note{
+    margin-top:10px;
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+  .result-framework-note{
+    margin-top:22px;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    max-width:52ch;
+  }
+
+  .radar-wrap{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:20px;
+    margin-top:36px;
+    box-shadow:var(--shadow-card);
+  }
+  .radar-wrap svg{ width:100%; height:auto; display:block; }
+  .radar-caption{
+    font-size:0.82rem;
+    color:var(--ink-faint);
+    margin-top:14px;
+    text-align:center;
+  }
+
+  .experiment-card{
+    margin-top:32px;
+    background:var(--accent-soft);
+    border:1px solid var(--accent-line);
+    border-radius:var(--radius-l);
+    padding:28px 26px;
+  }
+  .experiment-title{
+    font-size:1.05rem;
+    font-weight:650;
+    color:var(--accent-strong);
+  }
+  .experiment-intro{
+    margin-top:10px;
+    font-size:0.98rem;
+    color:var(--ink);
+  }
+  .experiment-list{
+    margin:14px 0 0;
+    padding-left:20px;
+    color:var(--ink);
+    font-size:0.98rem;
+    line-height:1.7;
+  }
+  .experiment-list li{ margin-bottom:2px; }
+
+  .result-reminder{
+    margin-top:26px;
+    font-size:0.95rem;
+    font-style:italic;
+    color:var(--ink-soft);
+    border-left:2px solid var(--accent-line);
+    padding-left:16px;
+  }
+
+  .result-actions{
+    margin-top:40px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:14px;
+  }
+  .restart-link{
+    appearance:none;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--ink-faint);
+    font-size:0.88rem;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    padding:0;
+  }
+  .restart-link:hover{ color:var(--ink-soft); }
+
+  footer.app-footer{
+    text-align:center;
+    padding:40px 24px 60px;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+  .footer-brand{
+    margin-top:6px;
+    font-size:0.72rem;
+    color:var(--ink-faint);
+    letter-spacing:0.02em;
+  }
+
+  /* ---------- Мобильная адаптация ---------- */
+  @media (max-width:480px){
+    .wrap{ padding:0 18px; }
+    #screen-intro{ padding-top:64px; }
+    #screen-quiz{ padding-top:56px; }
+    #screen-result{ padding-top:56px; }
+    .question-card{ padding:26px 20px; }
+    .experiment-card{ padding:22px 18px; }
+    .question-text{ font-size:1.18rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+    .day-curve path{ stroke-dashoffset:0; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- ============ ЭКРАН 1: INTRO ============ -->
+  <section id="screen-intro" class="screen active">
+    <div class="wrap">
+      <p class="eyebrow">Operational Wellbeing</p>
+      <h1 class="intro-title">Аудит рабочего дня</h1>
+      <p class="tool-tagline">Инструмент из Operational Wellbeing Framework</p>
+      <p class="intro-subtitle">За 3–5 минут узнайте, что больше всего влияет на вашу энергию, внимание и состояние в течение рабочего дня.</p>
+      <p class="intro-note">Это не тест на продуктивность. Это способ посмотреть на свой рабочий день со стороны.</p>
+
+      <figure class="day-curve" aria-hidden="true">
+        <svg viewBox="0 0 600 90" preserveAspectRatio="none">
+          <path d="M0,55 C60,20 100,75 150,45 C200,15 240,70 300,40 C360,15 400,65 450,50 C500,35 540,60 600,30" />
+        </svg>
+        <div class="day-curve-labels"><span>9:00</span><span>13:00</span><span>18:00</span></div>
+      </figure>
+
+      <div class="intro-cta">
+        <button class="btn-primary" id="startBtn">Начать аудит</button>
+        <p class="intro-meta">7 механизмов рабочего дня · 28 коротких вопросов</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ЭКРАН 2: ВОПРОСЫ ============ -->
+  <section id="screen-quiz" class="screen">
+    <div class="wrap">
+      <div class="quiz-head">
+        <button class="back-btn" id="backBtn">← Назад</button>
+        <span class="quiz-counter" id="quizCounter"></span>
+      </div>
+      <div class="question-card" id="questionCard">
+        <p class="eyebrow question-mechanism" id="questionMechanism"></p>
+        <h2 class="question-text" id="questionText"></h2>
+        <ul class="options" id="optionsList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ЭКРАН 3: РЕЗУЛЬТАТ ============ -->
+  <section id="screen-result" class="screen">
+    <div class="wrap">
+      <p class="eyebrow">Ваш профиль рабочего дня</p>
+      <h2 class="result-type" id="resultTitle"></h2>
+      <p class="result-model-note">Результат рассчитан по модели: 7 механизмов Operational Wellbeing</p>
+      <p class="result-lede" id="resultLede"></p>
+      <p class="result-framework-note">Этот аудит — первый инструмент Operational Wellbeing Framework: системы, которая помогает людям, работающим за ноутбуком, лучше понимать и проектировать свой рабочий день.</p>
+
+      <div class="radar-wrap">
+        <div id="radarChart"></div>
+        <p class="radar-caption">Влияние каждого механизма на ваш рабочий день</p>
+      </div>
+
+      <div class="experiment-card">
+        <p class="experiment-title">Главный эксперимент</p>
+        <p class="experiment-intro" id="experimentIntro"></p>
+        <ul class="experiment-list" id="experimentList"></ul>
+      </div>
+
+      <p class="result-reminder">Не пытайтесь изменить весь рабочий день сразу. Начните с одного наблюдения.</p>
+
+      <div class="result-actions">
+        <a class="btn-primary" id="toolkitBtn" href="#" target="_blank" rel="noopener">Получить инструменты для моего типа рабочего дня</a>
+        <button class="restart-link" id="restartBtn">Пройти аудит заново</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    <p>Инструмент наблюдения, не медицинская диагностика и не оценка личности.</p>
+    <p class="footer-brand">Operational Wellbeing Framework by @ekaworkwise</p>
+  </footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ==========================================================
+     ССЫЛКА НА TOOLKIT
+     Заменить на реальную ссылку на Telegram / Workday Toolkit,
+     когда он будет готов. Можно сделать словарь по типу дня,
+     если для каждого типа будет свой раздел.
+     ========================================================== */
+  var TOOLKIT_URL = "#";
+
+  /* ==========================================================
+     7 МЕХАНИЗМОВ РАБОЧЕГО ДНЯ
+     ========================================================== */
+  var MECHANISMS = [
+    { id: "attention", label: "Внимание" },
+    { id: "calendar",  label: "Календарь" },
+    { id: "energy",    label: "Энергия" },
+    { id: "workspace", label: "Пространство" },
+    { id: "recovery",  label: "Восстановление" },
+    { id: "habits",    label: "Привычки" },
+    { id: "emotional", label: "Эмоции" }
+  ];
+
+  /* ==========================================================
+     28 ВОПРОСОВ (по 4 на механизм)
+     Варианты идут от «меньше всего влияет» к «влияет сильнее
+     всего» — индекс варианта одновременно является количеством
+     баллов, которые он добавляет своему механизму (0–3).
+     Чтобы добавить/изменить вопрос — достаточно отредактировать
+     этот массив, ничего больше менять не нужно.
+     ========================================================== */
+  var QUESTIONS = [
+    // ВНИМАНИЕ
+    { mechanism:"attention", text:"С чего чаще всего начинается ваш рабочий день?",
+      options:["Начинаю главную задачу","Смотрю календарь","Проверяю почту","Проверяю Slack / Teams"] },
+    { mechanism:"attention", text:"Как часто вас отвлекают уведомления?",
+      options:["Почти никогда","Иногда","Несколько раз в час","Постоянно"] },
+    { mechanism:"attention", text:"После встречи вам легко вернуться к задаче?",
+      options:["Да","Обычно легко","Скорее сложно","Очень сложно"],
+      secondary:[{ id:"calendar", weight:0.4 }] },
+    { mechanism:"attention", text:"Сколько раз в течение часа вы обычно переключаетесь между задачами?",
+      options:["1 раз или реже","2–3 раза","4–6 раз","Почти без остановки"] },
+
+    // КАЛЕНДАРЬ И ВСТРЕЧИ
+    { mechanism:"calendar", text:"Есть ли у вас время без встреч?",
+      options:["Каждый день, и его достаточно","Каждый день, но немного","Иногда","Практически нет"] },
+    { mechanism:"calendar", text:"Кто чаще управляет вашим календарём?",
+      options:["Я","Я и команда вместе","Команда","Другие люди"] },
+    { mechanism:"calendar", text:"Сколько встреч в среднем у вас в день?",
+      options:["0–1","2–3","4–5","6 и больше"] },
+    { mechanism:"calendar", text:"После встреч остаётся время на спокойную работу?",
+      options:["Да, всегда","Обычно да","Редко","Почти никогда"],
+      secondary:[{ id:"attention", weight:0.4 }] },
+
+    // ЭНЕРГИЯ
+    { mechanism:"energy", text:"Когда обычно появляется ощущение «я больше не могу»?",
+      options:["В конце дня","После обеда","После встреч","Утром"] },
+    { mechanism:"energy", text:"Вы знаете свои часы максимальной концентрации?",
+      options:["Да, чётко знаю","Примерно представляю","Не задумывался об этом","Нет, работаю ровно весь день"] },
+    { mechanism:"energy", text:"Что вы делаете, когда чувствуете спад энергии?",
+      options:["Делаю паузу или меняю активность","Перехожу на более лёгкую задачу","Пью кофе и продолжаю","Просто продолжаю работать через силу"] },
+    { mechanism:"energy", text:"Как часто рабочий день заканчивается ощущением «выжат(а)»?",
+      options:["Редко","Иногда","Часто","Почти каждый день"],
+      secondary:[{ id:"recovery", weight:0.4 }] },
+
+    // РАБОЧЕЕ ПРОСТРАНСТВО
+    { mechanism:"workspace", text:"Ваше рабочее место помогает концентрироваться?",
+      options:["Да, полностью","В целом да","Иногда мешает","Скорее мешает, чем помогает"] },
+    { mechanism:"workspace", text:"Как часто вас отвлекает шум или посторонние звуки?",
+      options:["Почти никогда","Иногда","Часто","Постоянно"] },
+    { mechanism:"workspace", text:"Есть ли у вас чёткая граница между рабочим и нерабочим пространством?",
+      options:["Да, работаю в отдельном месте","Скорее да","Скорее нет","Нет, работаю где придётся"],
+      secondary:[{ id:"recovery", weight:0.4 }] },
+    { mechanism:"workspace", text:"Насколько удобно организовано ваше рабочее место (стол, стул, свет)?",
+      options:["Полностью продумано","В целом удобно","Есть неудобства, которые мешают","Совсем не продумано"] },
+
+    // ВОССТАНОВЛЕНИЕ
+    { mechanism:"recovery", text:"После работы у вас получается переключиться?",
+      options:["Да, легко","Обычно да","Иногда","Почти никогда"] },
+    { mechanism:"recovery", text:"Бывают ли у вас настоящие паузы в течение дня — без телефона и экрана?",
+      options:["Да, регулярно","Иногда","Редко","Почти никогда"] },
+    { mechanism:"recovery", text:"Как часто вы думаете о работе вечером или перед сном?",
+      options:["Почти никогда","Иногда","Часто","Почти каждый вечер"],
+      secondary:[{ id:"emotional", weight:0.4 }] },
+    { mechanism:"recovery", text:"После выходных вы чувствуете себя отдохнувшим(ей)?",
+      options:["Да, всегда","Обычно да","Не всегда","Редко"] },
+
+    // РАБОЧИЕ ПРИВЫЧКИ
+    { mechanism:"habits", text:"Вы планируете день до начала работы?",
+      options:["Да, всегда","Иногда","Редко","Нет, начинаю по ситуации"] },
+    { mechanism:"habits", text:"Как часто вы делаете несколько дел одновременно?",
+      options:["Почти никогда","Иногда","Часто","Почти всегда"],
+      secondary:[{ id:"attention", weight:0.4 }] },
+    { mechanism:"habits", text:"Замечаете ли вы, когда действуете по привычке, а не осознанно?",
+      options:["Да, регулярно замечаю","Иногда","Редко","Почти никогда не задумываюсь"] },
+    { mechanism:"habits", text:"Как часто рабочий день проходит по одному и тому же нерефлексируемому сценарию?",
+      options:["Редко","Иногда","Часто","Почти всегда"] },
+
+    // ЭМОЦИОНАЛЬНАЯ НАГРУЗКА
+    { mechanism:"emotional", text:"Как часто вы соглашаетесь на задачи, хотя уже перегружены?",
+      options:["Почти никогда","Редко","Иногда","Часто"],
+      secondary:[{ id:"calendar", weight:0.4 }] },
+    { mechanism:"emotional", text:"Легко ли вам сказать «нет» коллегам или руководителю?",
+      options:["Да, легко","Обычно да","Скорее сложно","Очень сложно"] },
+    { mechanism:"emotional", text:"Чувствуете ли вы вину, когда отдыхаете в рабочее время?",
+      options:["Нет","Иногда, немного","Часто","Почти всегда"] },
+    { mechanism:"emotional", text:"Как часто вы ощущаете внутреннее напряжение, даже когда явных причин нет?",
+      options:["Редко","Иногда","Часто","Почти постоянно"],
+      secondary:[{ id:"recovery", weight:0.4 }] }
+  ];
+
+  /* ==========================================================
+     7 ТИПОВ РАБОЧЕГО ДНЯ
+     Ключ объекта = id механизма, набравшего больше всего баллов.
+     Чтобы добавить новый тип — достаточно расширить этот объект
+     новым механизмом (и добавить соответствующие вопросы выше).
+     ========================================================== */
+  var TYPES = {
+    attention: {
+      title: "Реактивный день",
+      description: "Ваш день часто начинается с входящих задач, сообщений и запросов других людей. Вы много реагируете, но меньше управляете тем, куда направляется ваше внимание.",
+      experimentIntro: "3 дня понаблюдайте:",
+      items: ["что чаще всего вас отвлекает","сколько раз вы переключаетесь между задачами","какие уведомления на самом деле важны"]
+    },
+    calendar: {
+      title: "День под управлением календаря",
+      description: "Ваш календарь задаёт структуру дня. После встреч остаётся меньше пространства для спокойной работы и концентрации.",
+      experimentIntro: "3 дня отмечайте:",
+      items: ["какие встречи были действительно нужны","какие можно было заменить сообщением","когда у вас остаётся время на сложные задачи"]
+    },
+    energy: {
+      title: "День с утечками энергии",
+      description: "Вы продолжаете работать, даже когда уровень энергии уже изменился. Возможно, вы пока не замечаете свои рабочие ритмы и сигналы усталости.",
+      experimentIntro: "3 дня отслеживайте:",
+      items: ["когда энергия выше","когда наступает спад","что влияет на ваше состояние"]
+    },
+    workspace: {
+      title: "Среда работает против вас",
+      description: "Ваше окружение влияет на концентрацию и состояние больше, чем кажется. Шум, неудобство, отсутствие границ могут постепенно забирать ресурс.",
+      experimentIntro: "Понаблюдайте:",
+      items: ["что вокруг помогает работать","что регулярно отвлекает","что можно было бы изменить уже сейчас"]
+    },
+    recovery: {
+      title: "День без восстановления",
+      description: "Работа занимает не только время, но и продолжает занимать внимание после окончания дня. Организм не получает полноценного переключения.",
+      experimentIntro: "Понаблюдайте:",
+      items: ["были ли сегодня настоящие паузы","получилось ли завершить рабочий день","что помогает вам переключиться"]
+    },
+    habits: {
+      title: "День на автопилоте",
+      description: "Многие действия происходят автоматически. Вы повторяете привычный сценарий, не всегда задавая себе вопрос: «это действительно помогает мне?»",
+      experimentIntro: "Каждый день замечайте:",
+      items: ["одно действие, которое вы делаете на автомате","момент, когда можно было сделать иначе","что происходит, если сделать паузу перед привычным действием"]
+    },
+    emotional: {
+      title: "Эмоционально перегруженный день",
+      description: "Часть энергии уходит не на работу, а на внутреннее напряжение: переживания, необходимость всем отвечать, страх отказать, постоянное желание соответствовать ожиданиям.",
+      experimentIntro: "Понаблюдайте:",
+      items: ["где вы говорите «да», хотя хотите сказать «нет»","какие ситуации создают внутреннее напряжение","что происходит с телом в такие моменты"]
+    }
+  };
+
+  /* ==========================================================
+     СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+     ========================================================== */
+  var state = {
+    index: 0,                                   // текущий вопрос
+    answers: new Array(QUESTIONS.length).fill(null) // баллы по каждому вопросу
+  };
+
+  // Экраны
+  var screens = {
+    intro:  document.getElementById("screen-intro"),
+    quiz:   document.getElementById("screen-quiz"),
+    result: document.getElementById("screen-result")
+  };
+
+  function showScreen(name){
+    Object.keys(screens).forEach(function(k){
+      screens[k].classList.toggle("active", k === name);
+    });
+    window.scrollTo({ top:0, behavior:"instant" in window ? "instant" : "auto" });
+  }
+
+  /* ==========================================================
+     ЛОГИКА ВОПРОСОВ
+     ========================================================== */
+  var progressFill = document.getElementById("progressFill");
+  var quizCounter  = document.getElementById("quizCounter");
+  var backBtn      = document.getElementById("backBtn");
+  var mechanismEl  = document.getElementById("questionMechanism");
+  var questionEl   = document.getElementById("questionText");
+  var optionsEl    = document.getElementById("optionsList");
+  var questionCard = document.getElementById("questionCard");
+
+  function mechanismLabel(id){
+    var m = MECHANISMS.filter(function(m){ return m.id === id; })[0];
+    return m ? m.label : id;
+  }
+
+  function renderQuestion(){
+    var q = QUESTIONS[state.index];
+
+    progressFill.style.width = (state.index / QUESTIONS.length * 100) + "%";
+    quizCounter.textContent = "Вопрос " + (state.index + 1) + " из " + QUESTIONS.length;
+    backBtn.classList.toggle("visible", state.index > 0);
+
+    mechanismEl.textContent = mechanismLabel(q.mechanism);
+    questionEl.textContent = q.text;
+
+    optionsEl.innerHTML = "";
+    q.options.forEach(function(label, points){
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.type = "button";
+      if (state.answers[state.index] === points){
+        btn.classList.add("selected");
+      }
+      btn.innerHTML = "<span>" + label + "</span><span class=\"option-check\" aria-hidden=\"true\"></span>";
+      btn.addEventListener("click", function(){ selectAnswer(points); });
+      li.appendChild(btn);
+      optionsEl.appendChild(li);
+    });
+
+    // Небольшая анимация появления карточки
+    questionCard.style.animation = "none";
+    void questionCard.offsetWidth; // reflow
+    questionCard.style.animation = "";
+  }
+
+  function selectAnswer(points){
+    state.answers[state.index] = points;
+    renderQuestion(); // подсветить выбор
+    window.setTimeout(function(){
+      if (state.index < QUESTIONS.length - 1){
+        state.index += 1;
+        renderQuestion();
+      } else {
+        progressFill.style.width = "100%";
+        showResults();
+      }
+    }, 280);
+  }
+
+  backBtn.addEventListener("click", function(){
+    if (state.index > 0){
+      state.index -= 1;
+      renderQuestion();
+    }
+  });
+
+  document.getElementById("startBtn").addEventListener("click", function(){
+    showScreen("quiz");
+    renderQuestion();
+  });
+
+  /* ==========================================================
+     ПОДСЧЁТ РЕЗУЛЬТАТОВ
+     ========================================================== */
+  function computeScores(){
+    // raw — набранные баллы по механизму, maxPossible — максимум,
+    // который механизм мог бы набрать, с учётом того, что часть
+    // вопросов передаёт ему только долю своих баллов (secondary).
+    var raw = {}, maxPossible = {};
+    MECHANISMS.forEach(function(m){ raw[m.id] = 0; maxPossible[m.id] = 0; });
+
+    QUESTIONS.forEach(function(q, i){
+      var points = state.answers[i] || 0;
+
+      // Основной механизм вопроса получает баллы с весом 1
+      raw[q.mechanism] += points;
+      maxPossible[q.mechanism] += 3;
+
+      // Если вопрос пересекается с другим механизмом — добавляем
+      // ему часть баллов пропорционально указанному весу.
+      if (q.secondary){
+        q.secondary.forEach(function(s){
+          raw[s.id] += points * s.weight;
+          maxPossible[s.id] += 3 * s.weight;
+        });
+      }
+    });
+
+    var percent = {};
+    MECHANISMS.forEach(function(m){
+      percent[m.id] = Math.round((raw[m.id] / maxPossible[m.id]) * 100);
+    });
+    return percent;
+  }
+
+  function dominantMechanism(percent){
+    var best = MECHANISMS[0].id;
+    MECHANISMS.forEach(function(m){
+      if (percent[m.id] > percent[best]) best = m.id;
+    });
+    return best;
+  }
+
+  /* ==========================================================
+     РАДАР-ДИАГРАММА (сигнатурный элемент, рифмуется с «линией
+     дня» на первом экране)
+     ========================================================== */
+  function buildRadar(percent, dominant){
+    var size = 320;
+    var center = size / 2;
+    var maxR = 108;
+    var n = MECHANISMS.length;
+    var angleStep = (Math.PI * 2) / n;
+
+    function pointAt(index, radiusRatio){
+      var angle = -Math.PI / 2 + angleStep * index;
+      return {
+        x: center + Math.cos(angle) * maxR * radiusRatio,
+        y: center + Math.sin(angle) * maxR * radiusRatio
+      };
+    }
+
+    // Сетка (25/50/75/100%)
+    var gridRings = [0.25, 0.5, 0.75, 1].map(function(ratio){
+      var pts = [];
+      for (var i = 0; i < n; i++){
+        var p = pointAt(i, ratio);
+        pts.push(p.x.toFixed(1) + "," + p.y.toFixed(1));
+      }
+      return '<polygon points="' + pts.join(" ") + '" fill="none" stroke="#E1E3DE" stroke-width="1"/>';
+    }).join("");
+
+    // Оси
+    var axes = "";
+    var labels = "";
+    MECHANISMS.forEach(function(m, i){
+      var edge = pointAt(i, 1);
+      axes += '<line x1="' + center + '" y1="' + center + '" x2="' + edge.x.toFixed(1) + '" y2="' + edge.y.toFixed(1) + '" stroke="#E1E3DE" stroke-width="1"/>';
+
+      var labelPt = pointAt(i, 1.24);
+      var isDominant = m.id === dominant;
+      var anchor = "middle";
+      if (labelPt.x < center - 6) anchor = "end";
+      else if (labelPt.x > center + 6) anchor = "start";
+
+      labels += '<text x="' + labelPt.x.toFixed(1) + '" y="' + labelPt.y.toFixed(1) + '" ' +
+        'text-anchor="' + anchor + '" dominant-baseline="middle" ' +
+        'font-size="11.5" font-family="' + "-apple-system, sans-serif" + '" ' +
+        'font-weight="' + (isDominant ? "700" : "500") + '" ' +
+        'fill="' + (isDominant ? "#2F4A3E" : "#5B615C") + '">' + m.label + '</text>';
+    });
+
+    // Полигон значений
+    var valuePts = [];
+    var dots = "";
+    MECHANISMS.forEach(function(m, i){
+      var ratio = Math.max(percent[m.id], 4) / 100;
+      var p = pointAt(i, ratio);
+      valuePts.push(p.x.toFixed(1) + "," + p.y.toFixed(1));
+      var isDominant = m.id === dominant;
+      dots += '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (isDominant ? 5 : 3) + '" fill="' + (isDominant ? "#2F4A3E" : "#3F5D50") + '"/>';
+    });
+
+    var svg =
+      '<svg viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="Диаграмма влияния семи механизмов рабочего дня">' +
+        gridRings +
+        axes +
+        '<polygon points="' + valuePts.join(" ") + '" fill="#E3EAE4" stroke="#3F5D50" stroke-width="2" opacity="0.9"/>' +
+        dots +
+        labels +
+      '</svg>';
+
+    return svg;
+  }
+
+  /* ==========================================================
+     ОТРИСОВКА ЭКРАНА РЕЗУЛЬТАТА
+     ========================================================== */
+  function showResults(){
+    var percent = computeScores();
+    var dominant = dominantMechanism(percent);
+    var type = TYPES[dominant];
+
+    document.getElementById("resultTitle").textContent = type.title;
+    document.getElementById("resultLede").textContent =
+      "Сейчас сильнее всего на ваш рабочий день влияет: " + mechanismLabel(dominant) + ". " + type.description;
+
+    document.getElementById("radarChart").innerHTML = buildRadar(percent, dominant);
+
+    document.getElementById("experimentIntro").textContent = type.experimentIntro;
+    var list = document.getElementById("experimentList");
+    list.innerHTML = "";
+    type.items.forEach(function(item){
+      var li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    });
+
+    document.getElementById("toolkitBtn").setAttribute("href", TOOLKIT_URL);
+
+    showScreen("result");
+  }
+
+  document.getElementById("restartBtn").addEventListener("click", function(){
+    state.index = 0;
+    state.answers = new Array(QUESTIONS.length).fill(null);
+    showScreen("intro");
+  });
+
+})();
+</script>
+</body>
+</html>
