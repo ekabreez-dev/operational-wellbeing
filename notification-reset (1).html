@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Настройка уведомлений — Operational Wellbeing</title>
+<style>
+  :root{
+    --bg:#FAFAF9;
+    --surface:#FFFFFF;
+    --surface-alt:#F4F4F2;
+    --border:#E4E3DF;
+    --border-strong:#D3D2CD;
+    --text:#17181A;
+    --text-secondary:#6B6B70;
+    --text-tertiary:#A2A1A0;
+    --accent:#2C3446;
+    --accent-soft:#EBEEF2;
+    --accent-line:#C7CDD6;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ -webkit-font-smoothing:antialiased; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding:56px 20px 96px;
+  }
+
+  .wrap{ max-width:640px; margin:0 auto; }
+
+  a{ color:inherit; }
+
+  /* ---------- header ---------- */
+
+  .crumbs{
+    font-size:12.5px;
+    color:var(--text-tertiary);
+    letter-spacing:.02em;
+  }
+  .crumbs .sep{ margin:0 8px; color:var(--border-strong); }
+  .crumbs .current{ color:var(--text-secondary); }
+
+  .hr{
+    border:none;
+    border-top:1px solid var(--border);
+    margin:14px 0;
+  }
+
+  .titlebar{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:21px;
+    font-weight:650;
+    letter-spacing:-.01em;
+    margin:0;
+  }
+  .version{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-tertiary);
+    white-space:nowrap;
+  }
+
+  .intro{
+    color:var(--text-secondary);
+    font-size:14.5px;
+    margin:14px 0 0;
+    max-width:54ch;
+  }
+
+  /* ---------- sections ---------- */
+
+  section{ margin-top:44px; }
+
+  .step-label{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:11.5px;
+    font-weight:650;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--text-tertiary);
+    margin-bottom:6px;
+  }
+  .step-label .n{
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--accent-soft);
+    color:var(--accent);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:10.5px;
+    font-family:var(--mono);
+    font-weight:700;
+  }
+
+  h2{
+    font-size:16.5px;
+    font-weight:650;
+    margin:0 0 4px;
+    letter-spacing:-.005em;
+  }
+  .step-sub{
+    font-size:13.5px;
+    color:var(--text-secondary);
+    margin:0 0 18px;
+  }
+
+  /* ---------- app grid ---------- */
+
+  .app-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(148px,1fr));
+    gap:8px;
+  }
+
+  .app-opt{
+    position:relative;
+  }
+  .app-opt input{
+    position:absolute;
+    opacity:0;
+    width:100%; height:100%;
+    margin:0;
+    cursor:pointer;
+  }
+  .app-opt label{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:10px 12px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    font-size:13.5px;
+    color:var(--text);
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+    user-select:none;
+  }
+  .app-opt .badge{
+    width:22px; height:22px;
+    border-radius:6px;
+    background:var(--surface-alt);
+    color:var(--text-secondary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    font-family:var(--mono);
+    flex-shrink:0;
+    transition:background .12s ease, color .12s ease;
+  }
+  .app-opt input:checked + label{
+    border-color:var(--accent-line);
+    background:var(--accent-soft);
+  }
+  .app-opt input:checked + label .badge{
+    background:var(--accent);
+    color:#fff;
+  }
+  .app-opt input:focus-visible + label{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  /* ---------- config cards ---------- */
+
+  #configArea{ display:flex; flex-direction:column; gap:12px; }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    animation:rise .22s ease both;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .card-head{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .card-head .badge{
+    width:24px; height:24px;
+    border-radius:6px;
+    background:var(--accent);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    font-family:var(--mono);
+  }
+  .card-head .name{
+    font-size:14.5px;
+    font-weight:650;
+  }
+
+  .field{ margin-bottom:14px; }
+  .field:last-child{ margin-bottom:0; }
+
+  .field-q{
+    font-size:12.5px;
+    color:var(--text-secondary);
+    margin-bottom:7px;
+  }
+
+  .options{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  .opt{ position:relative; }
+  .opt input{
+    position:absolute;
+    opacity:0;
+    width:100%; height:100%;
+    cursor:pointer;
+    margin:0;
+  }
+  .opt label{
+    display:inline-flex;
+    align-items:center;
+    padding:6px 11px;
+    border:1px solid var(--border);
+    border-radius:100px;
+    font-size:12.5px;
+    color:var(--text-secondary);
+    background:var(--surface);
+    cursor:pointer;
+    transition:all .12s ease;
+    user-select:none;
+  }
+  .opt input:checked + label{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .opt input:focus-visible + label{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+
+  .custom-input{
+    margin-top:8px;
+    width:100%;
+    font-family:var(--sans);
+    font-size:13px;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--text);
+    display:none;
+  }
+  .custom-input.show{ display:block; }
+  .custom-input:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:transparent; }
+
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--text);
+    user-select:none;
+  }
+  .checkbox-row input{
+    width:15px; height:15px;
+    accent-color:var(--accent);
+    cursor:pointer;
+  }
+
+  .name-input{
+    width:100%;
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:600;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background:var(--surface-alt);
+    color:var(--text);
+    margin-bottom:14px;
+  }
+  .name-input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  /* ---------- empty state ---------- */
+
+  .empty{
+    border:1px dashed var(--border-strong);
+    border-radius:var(--radius);
+    padding:22px 20px;
+    font-size:13.5px;
+    color:var(--text-tertiary);
+    text-align:center;
+  }
+
+  /* ---------- summary ---------- */
+
+  .summary-card{
+    background:var(--accent);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:22px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .summary-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:100% 22px;
+    pointer-events:none;
+  }
+  .summary-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .summary-title{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:-.01em;
+  }
+  .summary-meta{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:rgba(255,255,255,.5);
+  }
+  .summary-empty{
+    font-size:13px;
+    color:rgba(255,255,255,.62);
+    position:relative;
+    padding:6px 0 2px;
+  }
+  .summary-block{
+    margin-bottom:14px;
+    position:relative;
+  }
+  .summary-block:last-child{ margin-bottom:0; }
+  .summary-block .app-name{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:rgba(255,255,255,.55);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:6px;
+  }
+  .summary-block .line{
+    display:flex;
+    gap:8px;
+    font-size:13px;
+    padding:2px 0;
+    color:rgba(255,255,255,.95);
+  }
+  .summary-block .line .check{
+    color:#fff;
+    font-family:var(--mono);
+    flex-shrink:0;
+  }
+
+  /* ---------- experiment ---------- */
+
+  .experiment{
+    background:var(--surface-alt);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .experiment .label{
+    font-size:11.5px;
+    font-weight:650;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--text-tertiary);
+    margin-bottom:8px;
+  }
+  .experiment p{
+    margin:0;
+    font-size:13.5px;
+    color:var(--text);
+  }
+
+  /* ---------- save ---------- */
+
+  .save-area{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-top:24px;
+  }
+  button.save{
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:11px 20px;
+    font-size:13.5px;
+    font-weight:650;
+    font-family:var(--sans);
+    cursor:pointer;
+    transition:opacity .12s ease;
+  }
+  button.save:hover{ opacity:.88; }
+  button.save:disabled{ opacity:.4; cursor:not-allowed; }
+  button.save:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  .save-status{
+    font-size:12.5px;
+    color:var(--text-tertiary);
+    font-family:var(--mono);
+  }
+  .save-status.show{ color:var(--accent); }
+
+  /* ---------- next step ---------- */
+
+  .next{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:16px 20px;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:var(--surface);
+  }
+  .next .l{ font-size:11.5px; color:var(--text-tertiary); margin-bottom:3px; }
+  .next .t{ font-size:14.5px; font-weight:650; color:var(--text); }
+  .next .tag{
+    font-size:10.5px;
+    font-family:var(--mono);
+    color:var(--text-tertiary);
+    border:1px solid var(--border);
+    padding:3px 8px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+
+  /* ---------- footer ---------- */
+
+  footer{
+    margin-top:56px;
+    padding-top:20px;
+    border-top:1px solid var(--border);
+    font-size:12px;
+    color:var(--text-tertiary);
+    line-height:1.6;
+  }
+  footer .by{ color:var(--text-secondary); margin-bottom:8px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  @media (max-width:480px){
+    body{ padding:36px 16px 80px; }
+    .app-grid{ grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="crumbs">
+    Operational Wellbeing <span class="sep">/</span> Механизм: <span class="current">Внимание</span>
+  </div>
+  <hr class="hr">
+
+  <div class="titlebar">
+    <h1>Настройка уведомлений</h1>
+    <span class="version">v1.0</span>
+  </div>
+  <p class="intro">После аудита вы уже знаете, что основная нагрузка приходится на внимание. Теперь можно перестроить систему уведомлений так, чтобы она поддерживала работу, а не управляла ею.</p>
+
+  <!-- STEP 1 -->
+  <section>
+    <div class="step-label"><span class="n">1</span>Приложения</div>
+    <h2>Выберите приложения, которыми вы пользуетесь</h2>
+    <p class="step-sub">Это не анализ. Это создание собственной системы.</p>
+    <div class="app-grid" id="appGrid"></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="configSection" style="display:none;">
+    <div class="step-label"><span class="n">2</span>Система</div>
+    <h2>Настройте систему уведомлений</h2>
+    <p class="step-sub">Для каждого приложения — своя карточка.</p>
+    <div id="configArea"></div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section>
+    <div id="summaryWrap"></div>
+  </section>
+
+  <!-- EXPERIMENT -->
+  <section id="experimentSection" style="display:none;">
+    <div class="experiment">
+      <div class="label">Что можно попробовать на этой неделе</div>
+      <p>Попробуйте придерживаться этой системы уведомлений в течение ближайших пяти рабочих дней и посмотрите, стало ли легче сохранять внимание во время работы.</p>
+    </div>
+  </section>
+
+  <!-- SAVE -->
+  <section>
+    <div class="save-area">
+      <button class="save" id="saveBtn" disabled>Сохранить мою систему</button>
+      <span class="save-status" id="saveStatus"></span>
+    </div>
+  </section>
+
+  <!-- NEXT -->
+  <section>
+    <div class="next">
+      <div>
+        <div class="l">Следующий шаг · Ежедневная практика</div>
+        <div class="t">Трекер фокуса</div>
+      </div>
+      <span class="tag">скоро</span>
+    </div>
+  </section>
+
+  <footer>
+    <div class="by">Part of the Operational Wellbeing Framework — by @ekaworkwise</div>
+    Этот инструмент помогает проектировать рабочий день. Он не является медицинской диагностикой, психологической оценкой или профессиональной консультацией.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "operational_wellbeing_notification_reset";
+  var DRAFT_KEY = STORAGE_KEY + "__draft"; // полное состояние полей — только для восстановления интерфейса, не часть публичной схемы
+
+  var APPS = [
+    { key:"teams",    label:"Teams",    category:"focus" },
+    { key:"slack",    label:"Slack",    category:"messaging" },
+    { key:"outlook",  label:"Outlook",  category:"email" },
+    { key:"gmail",    label:"Gmail",    category:"email" },
+    { key:"telegram", label:"Telegram", category:"messaging" },
+    { key:"whatsapp", label:"WhatsApp", category:"messaging" },
+    { key:"discord",  label:"Discord",  category:"messaging" },
+    { key:"calendar", label:"Calendar", category:"calendar" },
+    { key:"jira",     label:"Jira",     category:"focus" },
+    { key:"notion",   label:"Notion",   category:"focus" },
+    { key:"github",   label:"GitHub",   category:"focus" },
+    { key:"phone",    label:"Телефон",  category:"messaging" },
+    { key:"other",    label:"Другое",   category:"other" }
+  ];
+
+  var appByKey = {};
+  APPS.forEach(function(a){ appByKey[a.key] = a; });
+
+  var FIELD_LABELS = {
+    notifications: {
+      all: "Все уведомления",
+      dm_only: "Только личные сообщения",
+      mentions: "Только упоминания",
+      off: "Полностью отключено"
+    },
+    check_schedule: {
+      breaks: "Проверять в перерывах",
+      hourly: "Проверять раз в час",
+      morning_evening: "Проверять утром и вечером",
+      as_needed: "Проверять по необходимости",
+      always: "Проверять постоянно",
+      every_2h: "Проверять каждые два часа",
+      custom: null // uses custom text
+    },
+    reminder_minutes: {
+      "5": "Напоминание за 5 минут",
+      "10": "Напоминание за 10 минут",
+      "15": "Напоминание за 15 минут",
+      "30": "Напоминание за 30 минут"
+    }
+  };
+
+  // ---------- state ----------
+
+  var state = {
+    selected: {},   // key -> true
+    config: {}      // key -> field values
+  };
+
+  function defaultConfigFor(key){
+    return {};
+  }
+
+  // ---------- noise scoring (used to sort apps into keep / change) ----------
+  // Каждому заполненному полю сопоставлен "вес шума" от 0 (тихо) до 1 (шумно).
+  // Если среднее по приложению >= 0.5 — считаем, что поведение осталось прежним ("keep"),
+  // если ниже — что пользователь осознанно снизил шум ("change").
+
+  function appNoiseWeight(app, cfg){
+    var w = [];
+    if(app.category === "messaging" || app.category === "other"){
+      if(cfg.notifications) w.push({all:1, dm_only:.5, mentions:.4, off:0}[cfg.notifications]);
+      if(cfg.check_schedule){
+        var s = {breaks:.2, hourly:.6, morning_evening:.2, as_needed:.2, custom:.4}[cfg.check_schedule];
+        if(s !== undefined) w.push(s);
+      }
+      if(cfg.focus_mode !== undefined) w.push(cfg.focus_mode ? 0 : 1);
+    }
+    if(app.category === "email"){
+      if(cfg.check_schedule){
+        var s2 = {always:1, every_2h:.6, morning_evening:.2, custom:.4}[cfg.check_schedule];
+        if(s2 !== undefined) w.push(s2);
+      }
+      if(cfg.banners !== undefined) w.push(cfg.banners ? 1 : 0);
+    }
+    if(app.category === "calendar"){
+      if(cfg.reminder_minutes){
+        var s3 = {"5":1, "10":.7, "15":.4, "30":.2}[cfg.reminder_minutes];
+        if(s3 !== undefined) w.push(s3);
+      }
+    }
+    if(app.category === "focus"){
+      if(cfg.disable_during_focus !== undefined) w.push(cfg.disable_during_focus ? 0 : 1);
+    }
+    if(w.length === 0) return null;
+    return w.reduce(function(a,b){ return a+b; }, 0) / w.length;
+  }
+
+  function isSilenced(app, cfg){
+    return (app.category === "messaging" || app.category === "other") && cfg.notifications === "off";
+  }
+
+  function computeSystem(){
+    var keep = [], change = [], weights = [], critical = 0;
+    Object.keys(state.selected).forEach(function(key){
+      var app = appByKey[key];
+      var cfg = state.config[key] || {};
+      var w = appNoiseWeight(app, cfg);
+      if(w === null) return; // ещё недостаточно настроено, чтобы классифицировать
+      weights.push(w);
+      var label = displayName(app, cfg);
+      if(w >= 0.5) keep.push(label); else change.push(label);
+      if(!isSilenced(app, cfg)) critical++;
+    });
+    var noise_level = weights.length
+      ? Math.round(10 * (weights.reduce(function(a,b){ return a+b; }, 0) / weights.length))
+      : 0;
+    return { keep: keep, change: change, noise_level: noise_level, critical_sources: critical };
+  }
+
+  // ---------- persistence ----------
+
+  function formatLocalISO(d){
+    var pad = function(n){ return String(n).padStart(2,"0"); };
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
+      "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+  }
+
+  function loadDraft(){
+    try{
+      var raw = localStorage.getItem(DRAFT_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  function restoreFromSaved(){
+    var draft = loadDraft();
+    if(draft){
+      state.selected = draft.selected || {};
+      state.config = draft.config || {};
+    }
+    try{
+      var pub = localStorage.getItem(STORAGE_KEY);
+      if(pub){
+        var parsed = JSON.parse(pub);
+        if(parsed.created_at) lastSavedAt = parsed.created_at;
+      }
+    }catch(e){}
+  }
+
+  var lastSavedAt = null;
+
+  function saveDraft(){
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ selected: state.selected, config: state.config }));
+  }
+
+  function persist(){
+    var sys = computeSystem();
+    var now = new Date();
+    var payload = {
+      framework: "operational_wellbeing",
+      version: "1.0",
+      mechanism: "attention",
+      tool: "notification_reset",
+      created_at: formatLocalISO(now),
+      profile: { status: "completed" },
+      metrics: {
+        noise_level: sys.noise_level,
+        critical_sources: sys.critical_sources
+      },
+      configuration: {
+        keep: sys.keep,
+        change: sys.change
+      },
+      next_step: "focus_tracker"
+    };
+    lastSavedAt = payload.created_at;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    saveDraft();
+  }
+
+  // ---------- rendering: app grid ----------
+
+  function renderAppGrid(){
+    var grid = document.getElementById("appGrid");
+    grid.innerHTML = "";
+    APPS.forEach(function(app){
+      var wrap = document.createElement("div");
+      wrap.className = "app-opt";
+
+      var input = document.createElement("input");
+      input.type = "checkbox";
+      input.id = "app_" + app.key;
+      input.checked = !!state.selected[app.key];
+      input.addEventListener("change", function(){
+        if(input.checked){
+          state.selected[app.key] = true;
+          if(!state.config[app.key]) state.config[app.key] = defaultConfigFor(app.key);
+        } else {
+          delete state.selected[app.key];
+          delete state.config[app.key];
+        }
+        renderAll();
+      });
+
+      var label = document.createElement("label");
+      label.setAttribute("for", input.id);
+
+      var badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = app.label.charAt(0).toUpperCase();
+
+      var text = document.createElement("span");
+      text.textContent = app.label;
+
+      label.appendChild(badge);
+      label.appendChild(text);
+      wrap.appendChild(input);
+      wrap.appendChild(label);
+      grid.appendChild(wrap);
+    });
+  }
+
+  // ---------- field builders ----------
+
+  function optionGroup(appKey, field, options, currentValue, allowCustom){
+    var field_ = document.createElement("div");
+    field_.className = "field";
+
+    var q = document.createElement("div");
+    q.className = "field-q";
+    q.textContent = options.question;
+    field_.appendChild(q);
+
+    var row = document.createElement("div");
+    row.className = "options";
+
+    options.choices.forEach(function(choice){
+      var opt = document.createElement("span");
+      opt.className = "opt";
+
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = appKey + "_" + field;
+      var inputId = appKey + "_" + field + "_" + choice.value;
+      input.id = inputId;
+      input.checked = currentValue === choice.value;
+      input.addEventListener("change", function(){
+        setConfigValue(appKey, field, choice.value);
+        if(allowCustom){
+          customInput.classList.toggle("show", choice.value === "custom");
+          if(choice.value === "custom") customInput.focus();
+        }
+        renderSummary();
+      });
+
+      var label = document.createElement("label");
+      label.setAttribute("for", inputId);
+      label.textContent = choice.text;
+
+      opt.appendChild(input);
+      opt.appendChild(label);
+      row.appendChild(opt);
+    });
+
+    field_.appendChild(row);
+
+    var customInput;
+    if(allowCustom){
+      customInput = document.createElement("input");
+      customInput.type = "text";
+      customInput.className = "custom-input";
+      customInput.placeholder = "Например: проверять в 11:00 и 16:00";
+      var cfg = state.config[appKey] || {};
+      if(cfg[field] === "custom"){
+        customInput.classList.add("show");
+        customInput.value = cfg[field + "_custom"] || "";
+      }
+      customInput.addEventListener("input", function(){
+        setConfigValue(appKey, field + "_custom", customInput.value);
+        renderSummary();
+      });
+      field_.appendChild(customInput);
+    }
+
+    return field_;
+  }
+
+  function checkboxField(appKey, field, text, currentValue){
+    var field_ = document.createElement("div");
+    field_.className = "field";
+
+    var row = document.createElement("label");
+    row.className = "checkbox-row";
+
+    var input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = !!currentValue;
+    input.addEventListener("change", function(){
+      setConfigValue(appKey, field, input.checked);
+      renderSummary();
+    });
+
+    row.appendChild(input);
+    row.appendChild(document.createTextNode(text));
+    field_.appendChild(row);
+    return field_;
+  }
+
+  function setConfigValue(appKey, field, value){
+    if(!state.config[appKey]) state.config[appKey] = {};
+    state.config[appKey][field] = value;
+  }
+
+  // ---------- card builders per category ----------
+
+  function buildCard(app){
+    var cfg = state.config[app.key] || {};
+    var card = document.createElement("div");
+    card.className = "card";
+
+    var head = document.createElement("div");
+    head.className = "card-head";
+    var badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = app.label.charAt(0).toUpperCase();
+    var name = document.createElement("span");
+    name.className = "name";
+    name.textContent = app.label;
+    head.appendChild(badge);
+    head.appendChild(name);
+    card.appendChild(head);
+
+    if(app.category === "other"){
+      var nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.className = "name-input";
+      nameInput.placeholder = "Название приложения";
+      nameInput.value = cfg.custom_name || "";
+      nameInput.addEventListener("input", function(){
+        setConfigValue(app.key, "custom_name", nameInput.value);
+        renderSummary();
+      });
+      card.appendChild(nameInput);
+    }
+
+    if(app.category === "messaging" || app.category === "other"){
+      card.appendChild(optionGroup(app.key, "notifications", {
+        question: "Какие уведомления оставить?",
+        choices:[
+          {value:"all", text:"Все"},
+          {value:"dm_only", text:"Только личные сообщения"},
+          {value:"mentions", text:"Только упоминания"},
+          {value:"off", text:"Полностью отключить"}
+        ]
+      }, cfg.notifications, false));
+
+      card.appendChild(optionGroup(app.key, "check_schedule", {
+        question: "Когда проверять?",
+        choices:[
+          {value:"breaks", text:"Только в перерывах"},
+          {value:"hourly", text:"Раз в час"},
+          {value:"morning_evening", text:"Утром и вечером"},
+          {value:"as_needed", text:"По необходимости"},
+          {value:"custom", text:"Свой вариант"}
+        ]
+      }, cfg.check_schedule, true));
+
+      card.appendChild(checkboxField(app.key, "focus_mode", "Включать режим «Не беспокоить» во время фокусной работы", cfg.focus_mode));
+    }
+
+    if(app.category === "email"){
+      card.appendChild(optionGroup(app.key, "check_schedule", {
+        question: "Когда проверять почту?",
+        choices:[
+          {value:"always", text:"Постоянно"},
+          {value:"every_2h", text:"Каждые два часа"},
+          {value:"morning_evening", text:"Утром и вечером"},
+          {value:"custom", text:"Свой вариант"}
+        ]
+      }, cfg.check_schedule, true));
+
+      card.appendChild(checkboxField(app.key, "banners", "Показывать всплывающие уведомления", cfg.banners));
+    }
+
+    if(app.category === "calendar"){
+      card.appendChild(optionGroup(app.key, "reminder_minutes", {
+        question: "Напоминание о встрече",
+        choices:[
+          {value:"5", text:"За 5 минут"},
+          {value:"10", text:"За 10 минут"},
+          {value:"15", text:"За 15 минут"},
+          {value:"30", text:"За 30 минут"}
+        ]
+      }, cfg.reminder_minutes, false));
+    }
+
+    if(app.category === "focus"){
+      card.appendChild(checkboxField(app.key, "disable_during_focus", "Отключать уведомления во время Focus-блоков", cfg.disable_during_focus));
+    }
+
+    return card;
+  }
+
+  function renderConfigArea(){
+    var section = document.getElementById("configSection");
+    var area = document.getElementById("configArea");
+    var keys = Object.keys(state.selected);
+
+    if(keys.length === 0){
+      section.style.display = "none";
+      area.innerHTML = "";
+      return;
+    }
+    section.style.display = "";
+    area.innerHTML = "";
+    keys.forEach(function(key){
+      var app = appByKey[key];
+      if(!app) return;
+      area.appendChild(buildCard(app));
+    });
+  }
+
+  // ---------- summary ----------
+
+  function scheduleText(field, cfg){
+    var value = cfg[field];
+    if(!value) return null;
+    if(value === "custom"){
+      var custom = cfg[field + "_custom"];
+      return custom ? "Проверять: " + custom : null;
+    }
+    return FIELD_LABELS.check_schedule[value] || null;
+  }
+
+  function linesFor(app, cfg){
+    var lines = [];
+
+    if(app.category === "messaging" || app.category === "other"){
+      if(cfg.notifications) lines.push(FIELD_LABELS.notifications[cfg.notifications]);
+      var sched = scheduleText("check_schedule", cfg);
+      if(sched) lines.push(sched);
+      if(cfg.focus_mode) lines.push("Во время фокусной работы — режим «Не беспокоить»");
+    }
+
+    if(app.category === "email"){
+      var eSched = scheduleText("check_schedule", cfg);
+      if(eSched) lines.push(eSched);
+      if(cfg.banners === true) lines.push("Всплывающие уведомления включены");
+      if(cfg.banners === false) lines.push("Всплывающие уведомления отключены");
+    }
+
+    if(app.category === "calendar"){
+      if(cfg.reminder_minutes) lines.push(FIELD_LABELS.reminder_minutes[cfg.reminder_minutes]);
+    }
+
+    if(app.category === "focus"){
+      if(cfg.disable_during_focus === true) lines.push("Уведомления отключаются во время Focus-блоков");
+      if(cfg.disable_during_focus === false) lines.push("Уведомления остаются включены во время Focus-блоков");
+    }
+
+    return lines;
+  }
+
+  function displayName(app, cfg){
+    if(app.category === "other" && cfg.custom_name) return cfg.custom_name;
+    return app.label;
+  }
+
+  function renderSummary(){
+    var wrap = document.getElementById("summaryWrap");
+    var keys = Object.keys(state.selected);
+
+    var blocksHtml = "";
+    var anyLine = false;
+
+    keys.forEach(function(key){
+      var app = appByKey[key];
+      if(!app) return;
+      var cfg = state.config[key] || {};
+      var lines = linesFor(app, cfg);
+      if(lines.length === 0) return;
+      anyLine = true;
+      blocksHtml += '<div class="summary-block"><div class="app-name">' + escapeHtml(displayName(app, cfg)) + '</div>';
+      lines.forEach(function(line){
+        blocksHtml += '<div class="line"><span class="check">✓</span><span>' + escapeHtml(line) + '</span></div>';
+      });
+      blocksHtml += '</div>';
+    });
+
+    var metaText = lastSavedAt ? "локально · браузер" : "черновик";
+
+    var html = '<div class="summary-card">' +
+      '<div class="summary-head"><span class="summary-title">Моя система</span><span class="summary-meta">' + metaText + '</span></div>';
+
+    if(!anyLine){
+      html += '<div class="summary-empty">Пока пусто — выберите приложения выше, и здесь начнёт складываться ваша система.</div>';
+    } else {
+      html += blocksHtml;
+    }
+    html += '</div>';
+
+    wrap.innerHTML = html;
+
+    // experiment + save button visibility
+    document.getElementById("experimentSection").style.display = anyLine ? "" : "none";
+    document.getElementById("saveBtn").disabled = !anyLine;
+
+    saveDraft();
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- save ----------
+
+  function formatTime(iso){
+    try{
+      var d = new Date(iso);
+      var pad = function(n){ return String(n).padStart(2,"0"); };
+      return pad(d.getHours()) + ":" + pad(d.getMinutes());
+    }catch(e){ return ""; }
+  }
+
+  function initSave(){
+    var btn = document.getElementById("saveBtn");
+    var status = document.getElementById("saveStatus");
+    btn.addEventListener("click", function(){
+      persist();
+      status.textContent = "Сохранено · " + formatTime(lastSavedAt);
+      status.classList.add("show");
+      renderSummary();
+    });
+    if(lastSavedAt){
+      status.textContent = "Сохранено · " + formatTime(lastSavedAt);
+      status.classList.add("show");
+    }
+  }
+
+  // ---------- init ----------
+
+  function renderAll(){
+    renderAppGrid();
+    renderConfigArea();
+    renderSummary();
+  }
+
+  restoreFromSaved();
+  renderAll();
+  initSave();
+
+})();
+</script>
+</body>
+</html>
