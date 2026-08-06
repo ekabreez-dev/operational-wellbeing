@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>План движения — Operational Wellbeing</title>
+<style>
+  :root{
+    --bg:#FAFAF9;
+    --surface:#FFFFFF;
+    --surface-alt:#F4F4F2;
+    --border:#E4E3DF;
+    --border-strong:#D3D2CD;
+    --text:#17181A;
+    --text-secondary:#6B6B70;
+    --text-tertiary:#A2A1A0;
+    --accent:#2C3446;
+    --accent-soft:#EBEEF2;
+    --accent-line:#C7CDD6;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ -webkit-font-smoothing:antialiased; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.5;
+    padding:56px 20px 96px;
+  }
+
+  .wrap{ max-width:680px; margin:0 auto; }
+  a{ color:inherit; }
+
+  /* ---------- header ---------- */
+
+  .crumbs{ font-size:12.5px; color:var(--text-tertiary); letter-spacing:.02em; }
+  .crumbs .sep{ margin:0 8px; color:var(--border-strong); }
+  .crumbs .current{ color:var(--text-secondary); }
+  .hr{ border:none; border-top:1px solid var(--border); margin:14px 0; }
+
+  .titlebar{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:6px; }
+  h1{ font-size:21px; font-weight:650; letter-spacing:-.01em; margin:0; }
+  .version{ font-family:var(--mono); font-size:11.5px; color:var(--text-tertiary); white-space:nowrap; }
+
+  .intro{ color:var(--text-secondary); font-size:14.5px; margin:14px 0 0; max-width:58ch; }
+
+  /* ---------- sections ---------- */
+
+  section{ margin-top:40px; }
+
+  .step-label{
+    display:flex; align-items:center; gap:9px;
+    font-size:11.5px; font-weight:650; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--text-tertiary); margin-bottom:6px;
+  }
+  .step-label .n{
+    width:18px; height:18px; border-radius:50%;
+    background:var(--accent-soft); color:var(--accent);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:10.5px; font-family:var(--mono); font-weight:700;
+  }
+
+  h2{ font-size:16px; font-weight:650; margin:0 0 4px; letter-spacing:-.005em; }
+  .step-sub{ font-size:13.5px; color:var(--text-secondary); margin:0 0 16px; }
+  .step-hint{ font-size:12px; color:var(--text-tertiary); margin-top:10px; }
+
+  /* ---------- tile grid ---------- */
+
+  .tile-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:8px; }
+
+  .tile{ position:relative; }
+  .tile input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
+  .tile label{
+    display:flex; align-items:center; gap:9px;
+    padding:10px 12px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    font-size:13.5px; color:var(--text);
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease, opacity .12s ease;
+    user-select:none;
+  }
+  .tile .mark{
+    width:16px; height:16px; border-radius:4px;
+    border:1.5px solid var(--border-strong);
+    flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; color:transparent;
+    transition:all .12s ease;
+  }
+  .tile.round .mark{ border-radius:50%; }
+  .tile input:checked + label .mark{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tile input:checked + label{ border-color:var(--accent-line); background:var(--accent-soft); }
+  .tile input:disabled + label{ opacity:.4; cursor:not-allowed; }
+  .tile input:focus-visible + label{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .other-input{
+    margin-top:8px;
+    width:100%;
+    font-family:var(--sans);
+    font-size:13px;
+    padding:8px 10px;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    background:var(--surface);
+    color:var(--text);
+    display:none;
+  }
+  .other-input.show{ display:block; }
+  .other-input:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:transparent; }
+
+  /* ---------- summary ---------- */
+
+  .summary-card{
+    background:var(--accent);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:22px 24px;
+    position:relative;
+    overflow:hidden;
+  }
+  .summary-card::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:100% 22px;
+    pointer-events:none;
+  }
+  .summary-title{ font-size:15px; font-weight:700; letter-spacing:-.01em; margin-bottom:16px; position:relative; }
+  .summary-empty{ font-size:13px; color:rgba(255,255,255,.62); position:relative; padding:6px 0 2px; }
+
+  .s-group{
+    padding:14px 0;
+    border-bottom:1px solid rgba(255,255,255,.16);
+    position:relative;
+  }
+  .s-group:first-of-type{ padding-top:0; }
+  .s-group:last-of-type{ border-bottom:none; padding-bottom:0; }
+  .s-group .s-label{
+    font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em;
+    color:rgba(255,255,255,.5); margin-bottom:8px;
+  }
+  .s-group .s-line{ display:flex; gap:8px; font-size:13px; padding:2px 0; color:rgba(255,255,255,.95); }
+  .s-group .s-line .check{ color:#fff; font-family:var(--mono); flex-shrink:0; }
+
+  .expected-block, .experiment-block{
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid rgba(255,255,255,.18);
+    position:relative;
+  }
+  .expected-block .e-label, .experiment-block .e-label{
+    font-size:11.5px; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;
+  }
+  .expected-block .chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .expected-block .chip{
+    font-size:12px; padding:5px 10px; border-radius:100px;
+    background:rgba(255,255,255,.14); color:#fff;
+  }
+  .experiment-block .e-sub{ font-size:12.5px; color:rgba(255,255,255,.65); margin-bottom:10px; }
+  .experiment-block .e-line{ font-size:13.5px; padding:3px 0; display:flex; gap:8px; }
+  .experiment-block .e-line .check{ font-family:var(--mono); }
+
+  /* ---------- save ---------- */
+
+  .save-area{ display:flex; align-items:center; gap:14px; margin-top:24px; }
+  button.primary{
+    background:var(--accent); color:#fff; border:none;
+    border-radius:var(--radius-sm); padding:11px 20px;
+    font-size:13.5px; font-weight:650; font-family:var(--sans);
+    cursor:pointer; transition:opacity .12s ease;
+  }
+  button.primary:hover{ opacity:.88; }
+  button.primary:disabled{ opacity:.4; cursor:not-allowed; }
+  button.primary:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .save-status{ font-size:12.5px; color:var(--text-tertiary); font-family:var(--mono); }
+  .save-status.show{ color:var(--accent); }
+
+  /* ---------- next ---------- */
+
+  .next{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:16px 20px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
+  }
+  .next .l{ font-size:11.5px; color:var(--text-tertiary); margin-bottom:3px; }
+  .next .t{ font-size:14.5px; font-weight:650; color:var(--text); }
+  .next .tag{
+    font-size:10.5px; font-family:var(--mono); color:var(--text-tertiary);
+    border:1px solid var(--border); padding:3px 8px; border-radius:100px; white-space:nowrap;
+  }
+
+  /* ---------- footer ---------- */
+
+  footer{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--border);
+    font-size:12px; color:var(--text-tertiary); line-height:1.6;
+  }
+  footer .by{ color:var(--text-secondary); margin-bottom:8px; }
+
+  [hidden]{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  @media (max-width:520px){
+    body{ padding:36px 16px 80px; }
+    .tile-grid{ grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="crumbs">
+    Operational Wellbeing <span class="sep">/</span> Механизм: <span class="current">Тело</span>
+  </div>
+  <hr class="hr">
+
+  <div class="titlebar">
+    <h1>План движения</h1>
+    <span class="version">v1.0</span>
+  </div>
+
+  <p class="intro">Во время рабочего дня тело почти всегда подаёт сигналы раньше, чем появляется сильная усталость. Этот инструмент поможет встроить движение в рабочий день так, чтобы оно стало частью системы, а не отдельной задачей.</p>
+
+  <!-- STEP 1 -->
+  <section>
+    <div class="step-label"><span class="n">1</span>Контекст</div>
+    <h2>Как обычно проходит ваш рабочий день?</h2>
+    <p class="step-sub">Выберите всё подходящее.</p>
+    <div class="tile-grid" id="contextGrid"></div>
+  </section>
+
+  <!-- STEP 2 (новая) -->
+  <section>
+    <div class="step-label"><span class="n">2</span>Сигналы</div>
+    <h2>Какой сигнал тела обычно означает, что пора сделать паузу?</h2>
+    <p class="step-sub">Можно выбрать несколько вариантов.</p>
+    <div class="tile-grid" id="signalGrid"></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section>
+    <div class="step-label"><span class="n">3</span>Моменты</div>
+    <h2>Когда движение было бы проще всего встроить?</h2>
+    <p class="step-sub">Можно выбрать несколько вариантов.</p>
+    <div class="tile-grid" id="triggerGrid"></div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section>
+    <div class="step-label"><span class="n">4</span>Действия</div>
+    <h2>Какие короткие действия подходят именно вам?</h2>
+    <p class="step-sub">Выберите только те, которые реально готовы выполнять.</p>
+    <div class="tile-grid" id="activityGrid"></div>
+    <input type="text" class="other-input" id="activityOtherInput" placeholder="Опишите свой вариант">
+  </section>
+
+  <!-- STEP 5 -->
+  <section>
+    <div class="step-label"><span class="n">5</span>Длительность</div>
+    <h2>Сколько времени вы готовы уделять одному перерыву?</h2>
+    <div class="tile-grid" id="durationGrid"></div>
+  </section>
+
+  <!-- STEP 6 -->
+  <section>
+    <div class="step-label"><span class="n">6</span>Препятствия</div>
+    <h2>Что чаще всего мешает двигаться?</h2>
+    <p class="step-sub">Можно выбрать несколько вариантов.</p>
+    <div class="tile-grid" id="obstacleGrid"></div>
+  </section>
+
+  <!-- STEP 7 -->
+  <section>
+    <div class="step-label"><span class="n">7</span>Приоритет</div>
+    <h2>Что хочется изменить в первую очередь?</h2>
+    <p class="step-sub">Максимум три варианта.</p>
+    <div class="tile-grid" id="goalGrid"></div>
+    <input type="text" class="other-input" id="goalOtherInput" placeholder="Опишите свой вариант">
+    <p class="step-hint" id="goalHint"></p>
+  </section>
+
+  <!-- STEP 8 -->
+  <section>
+    <div class="step-label"><span class="n">8</span>Ожидание</div>
+    <h2>Что теперь должно стать проще благодаря этой системе?</h2>
+    <p class="step-sub">Можно выбрать несколько вариантов.</p>
+    <div class="tile-grid" id="resultGrid"></div>
+  </section>
+
+  <!-- RESULT -->
+  <section>
+    <div id="summaryWrap"></div>
+  </section>
+
+  <!-- SAVE -->
+  <section>
+    <div class="save-area">
+      <button class="primary" id="saveBtn" disabled>Сохранить систему движения</button>
+      <span class="save-status" id="saveStatus"></span>
+    </div>
+  </section>
+
+  <!-- NEXT -->
+  <section id="nextSection" hidden>
+    <div class="next">
+      <div>
+        <div class="l">Следующий шаг</div>
+        <div class="t">Проверка состояния тела</div>
+      </div>
+      <span class="tag">скоро</span>
+    </div>
+  </section>
+
+  <footer>
+    <div class="by">Part of the Operational Wellbeing Framework — by @ekaworkwise</div>
+    Этот инструмент помогает проектировать рабочие привычки и условия работы. Он не является медицинской диагностикой, психологической оценкой или профессиональной консультацией.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "operational_wellbeing_movement_plan";
+  var MAX_GOALS = 3;
+
+  var CONTEXT = {
+    sitting_most:    "Работаю почти всё время сидя",
+    many_meetings:   "Часто нахожусь на встречах",
+    barely_stand:    "Почти не встаю из-за компьютера",
+    forget_pauses:   "Часто забываю сделать паузу",
+    evening_tension: "Иногда уже вечером чувствую напряжение",
+    home:            "Работаю дома",
+    office:          "Работаю в офисе",
+    hybrid:          "Работаю гибридно"
+  };
+
+  var SIGNALS = {
+    neck_tension:    "Напряжение в шее",
+    back_pain:       "Боль в спине",
+    dry_eyes:        "Сухость глаз",
+    fidgeting:       "Начинаю ерзать на стуле",
+    losing_focus:    "Теряю концентрацию",
+    checking_phone:  "Начинаю чаще смотреть в телефон",
+    shoulder_fatigue:"Усталость в плечах",
+    no_signals:      "Не замечаю никаких сигналов"
+  };
+
+  var TRIGGERS = {
+    before_work:          "Перед началом рабочего дня",
+    before_first_meeting: "Перед первой встречей",
+    after_meeting:        "После встречи",
+    after_big_task:       "После завершения большой задачи",
+    lunch:                "Во время обеда",
+    afternoon:            "Во второй половине дня",
+    end_of_day:           "Перед окончанием рабочего дня"
+  };
+
+  var ACTIVITIES = {
+    stand_walk:    "Встать и пройтись",
+    neck:          "Размять шею",
+    shoulders:     "Размять плечи",
+    eyes:          "Сделать упражнения для глаз",
+    stretch:       "Потянуться",
+    hands:         "Сделать упражнения для кистей",
+    squats:        "Несколько приседаний",
+    stairs:        "Подняться по лестнице",
+    outside:       "Выйти на улицу на несколько минут",
+    water_standing:"Выпить воды стоя",
+    other:         "Другое"
+  };
+
+  var DURATION = {
+    sec30: "30 секунд",
+    min1:  "1 минута",
+    min3:  "3 минуты",
+    min5:  "5 минут",
+    any:   "Не важно"
+  };
+
+  var OBSTACLES = {
+    forget:               "Забываю",
+    back_to_back:          "Встречи идут подряд",
+    dont_want_interrupt:   "Не хочется прерываться",
+    dont_notice_fatigue:   "Не замечаю усталость",
+    no_space:              "Не хватает места",
+    dont_know_what:        "Не знаю что делать",
+    no_time_feeling:       "Кажется, что нет времени"
+  };
+
+  var GOALS = {
+    stand_more:          "Вставать чаще",
+    less_sitting:        "Меньше сидеть без движения",
+    reduce_neck_tension: "Снизить напряжение в шее",
+    reduce_back_tension: "Снизить напряжение в спине",
+    rest_eyes:           "Давать отдых глазам",
+    short_stretches:     "Делать короткие разминки",
+    more_walking:        "Добавить больше ходьбы",
+    other:               "Другое"
+  };
+
+  var EXPECTED = {
+    less_tension:         "Меньше чувствовать напряжение",
+    remember_more:        "Реже забывать про движение",
+    more_energy:          "Легче сохранять энергию",
+    less_evening_fatigue: "Меньше уставать к вечеру",
+    better_focus:         "Дольше концентрироваться",
+    faster_recovery:      "Быстрее восстанавливаться",
+    more_comfort:         "Работать комфортнее"
+  };
+
+  var state = {
+    context: [],
+    signals: [],
+    triggers: [],
+    activities: [],
+    activityOther: "",
+    duration: null,
+    obstacles: [],
+    goals: [],
+    goalOther: "",
+    expected: []
+  };
+
+  // ---------- persistence ----------
+
+  function loadSaved(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+
+  var lastSavedAt = null;
+  var hasSaved = false;
+
+  function restoreDraft(){
+    var raw;
+    try{ raw = localStorage.getItem(STORAGE_KEY + "__draft"); }catch(e){ raw = null; }
+    if(raw){
+      try{
+        var d = JSON.parse(raw);
+        Object.keys(state).forEach(function(k){ if(d[k] !== undefined) state[k] = d[k]; });
+      }catch(e){}
+    }
+    var saved = loadSaved();
+    if(saved){ hasSaved = true; if(saved.date) lastSavedAt = saved.date; }
+  }
+
+  function saveDraft(){
+    localStorage.setItem(STORAGE_KEY + "__draft", JSON.stringify(state));
+  }
+
+  function formatDate(d){
+    var pad = function(n){ return String(n).padStart(2,"0"); };
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+
+  function activityKeyList(){
+    return state.activities.map(function(k){
+      return k === "other" ? (state.activityOther.trim() || "other") : k;
+    });
+  }
+
+  function goalKeyList(){
+    return state.goals
+      .filter(function(k){ return k !== "other" || (state.goalOther && state.goalOther.trim()); })
+      .map(function(k){ return k === "other" ? (state.goalOther.trim() || "other") : k; });
+  }
+
+  function persist(){
+    var date = formatDate(new Date());
+    var goals = goalKeyList();
+    var payload = {
+      tool: "movement_plan",
+      mechanism: "body",
+      date: date,
+      configuration: {
+        movement_triggers: state.triggers.slice(),
+        duration: state.duration,
+        activities: activityKeyList(),
+        goal: goals.length ? goals[0] : null
+      },
+      expected_result: state.expected.slice(),
+      experiment: { duration: "5_workdays" }
+    };
+    if(state.signals.length){
+      payload.body_signals = state.signals.slice();
+    }
+    lastSavedAt = date;
+    hasSaved = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    saveDraft();
+  }
+
+  // ---------- generic tile grid renderer ----------
+
+  function renderTileGrid(containerId, dict, selectedArr, opts, onChange){
+    opts = opts || {};
+    var grid = document.getElementById(containerId);
+    grid.innerHTML = "";
+    var atMax = opts.max && selectedArr.length >= opts.max;
+
+    Object.keys(dict).forEach(function(key){
+      var tile = document.createElement("div");
+      tile.className = "tile" + (opts.round ? " round" : "");
+      var input = document.createElement("input");
+      input.type = opts.single ? "radio" : "checkbox";
+      if(opts.single) input.name = containerId + "_group";
+      input.id = containerId + "_" + key;
+      var checked = opts.single ? selectedArr[0] === key : selectedArr.indexOf(key) !== -1;
+      input.checked = checked;
+      if(!opts.single) input.disabled = atMax && !checked;
+
+      input.addEventListener("change", function(){
+        if(opts.single){
+          selectedArr.length = 0;
+          selectedArr.push(key);
+        } else if(input.checked){
+          if(!opts.max || selectedArr.length < opts.max) selectedArr.push(key);
+          else { input.checked = false; return; }
+        } else {
+          var idx = selectedArr.indexOf(key);
+          if(idx !== -1) selectedArr.splice(idx, 1);
+        }
+        onChange();
+      });
+
+      var label = document.createElement("label");
+      label.setAttribute("for", input.id);
+      var mark = document.createElement("span");
+      mark.className = "mark";
+      mark.textContent = opts.single ? "●" : "✓";
+      label.appendChild(mark);
+      label.appendChild(document.createTextNode(dict[key]));
+      tile.appendChild(input);
+      tile.appendChild(label);
+      grid.appendChild(tile);
+    });
+  }
+
+  function renderAllGrids(){
+    renderTileGrid("contextGrid", CONTEXT, state.context, {}, function(){ saveDraft(); });
+    renderTileGrid("signalGrid", SIGNALS, state.signals, {}, function(){ renderSummary(); saveDraft(); });
+    renderTileGrid("triggerGrid", TRIGGERS, state.triggers, {}, function(){ renderSummary(); saveDraft(); });
+
+    renderTileGrid("activityGrid", ACTIVITIES, state.activities, {}, function(){
+      document.getElementById("activityOtherInput").classList.toggle("show", state.activities.indexOf("other") !== -1);
+      renderSummary(); saveDraft();
+    });
+    document.getElementById("activityOtherInput").classList.toggle("show", state.activities.indexOf("other") !== -1);
+    document.getElementById("activityOtherInput").value = state.activityOther;
+
+    renderTileGrid("durationGrid", DURATION, state.duration ? [state.duration] : [], { single:true, round:true }, function(){
+      state.duration = state.duration; // handled below via wrapper
+    });
+
+    renderTileGrid("obstacleGrid", OBSTACLES, state.obstacles, {}, function(){ saveDraft(); });
+
+    renderTileGrid("goalGrid", GOALS, state.goals, { max:MAX_GOALS }, function(){
+      document.getElementById("goalOtherInput").classList.toggle("show", state.goals.indexOf("other") !== -1);
+      document.getElementById("goalHint").textContent = "Выбрано " + state.goals.length + " из " + MAX_GOALS;
+      renderAllGrids(); // re-render to reflect max-disable state
+      renderSummary(); saveDraft();
+    });
+    document.getElementById("goalOtherInput").classList.toggle("show", state.goals.indexOf("other") !== -1);
+    document.getElementById("goalOtherInput").value = state.goalOther;
+    document.getElementById("goalHint").textContent = "Выбрано " + state.goals.length + " из " + MAX_GOALS;
+
+    renderTileGrid("resultGrid", EXPECTED, state.expected, {}, function(){ renderSummary(); saveDraft(); });
+  }
+
+  // duration needs custom single-select handling (radio into scalar state.duration)
+  function renderDurationGrid(){
+    var grid = document.getElementById("durationGrid");
+    grid.innerHTML = "";
+    Object.keys(DURATION).forEach(function(key){
+      var tile = document.createElement("div");
+      tile.className = "tile round";
+      var input = document.createElement("input");
+      input.type = "radio";
+      input.name = "duration";
+      input.id = "duration_" + key;
+      input.checked = state.duration === key;
+      input.addEventListener("change", function(){
+        state.duration = key;
+        renderSummary();
+        saveDraft();
+      });
+      var label = document.createElement("label");
+      label.setAttribute("for", input.id);
+      var mark = document.createElement("span");
+      mark.className = "mark";
+      mark.textContent = "●";
+      label.appendChild(mark);
+      label.appendChild(document.createTextNode(DURATION[key]));
+      tile.appendChild(input);
+      tile.appendChild(label);
+      grid.appendChild(tile);
+    });
+  }
+
+  document.getElementById("activityOtherInput").addEventListener("input", function(e){
+    state.activityOther = e.target.value;
+    renderSummary(); saveDraft();
+  });
+  document.getElementById("goalOtherInput").addEventListener("input", function(e){
+    state.goalOther = e.target.value;
+    renderSummary(); saveDraft();
+  });
+
+  // ---------- experiment auto-generation ----------
+
+  function activityLabel(key){
+    if(!ACTIVITIES[key]) return key;
+    return ACTIVITIES[key];
+  }
+
+  function buildExperimentLines(){
+    var triggers = state.triggers;
+    var activities = activityKeyList().filter(function(k){ return ACTIVITIES[k]; });
+    if(triggers.length === 0 || activities.length === 0) return [];
+
+    var count = Math.min(3, Math.max(triggers.length, activities.length));
+    var lines = [];
+    for(var i = 0; i < count; i++){
+      var trigger = TRIGGERS[triggers[i % triggers.length]];
+      var activity = activityLabel(activities[i % activities.length]);
+      lines.push(activity + " — " + trigger.charAt(0).toLowerCase() + trigger.slice(1));
+    }
+    return lines;
+  }
+
+  // ---------- summary ----------
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderSummary(){
+    var wrap = document.getElementById("summaryWrap");
+    var triggers = state.triggers;
+    var activities = activityKeyList().filter(function(k){ return true; });
+    var hasCore = triggers.length > 0 && activities.length > 0 && state.duration;
+
+    var html = '<div class="summary-card"><div class="summary-title">Моя система движения</div>';
+
+    if(!hasCore){
+      html += '<div class="summary-empty">Пока пусто — выберите моменты, действия и длительность выше, и здесь появится ваша система.</div></div>';
+      wrap.innerHTML = html;
+      document.getElementById("saveBtn").disabled = true;
+      saveDraft();
+      return;
+    }
+
+    html += '<div class="s-group"><div class="s-label">Моменты движения</div>';
+    triggers.forEach(function(t){
+      html += '<div class="s-line"><span class="check">✓</span><span>' + escapeHtml(TRIGGERS[t]) + '</span></div>';
+    });
+    html += '</div>';
+
+    html += '<div class="s-group"><div class="s-label">Продолжительность</div>';
+    html += '<div class="s-line"><span class="check">✓</span><span>' + escapeHtml(DURATION[state.duration]) + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="s-group"><div class="s-label">Основные действия</div>';
+    activities.forEach(function(a){
+      html += '<div class="s-line"><span class="check">✓</span><span>' + escapeHtml(activityLabel(a)) + '</span></div>';
+    });
+    html += '</div>';
+
+    var goals = goalKeyList();
+    if(goals.length){
+      html += '<div class="s-group"><div class="s-label">Главная цель</div>';
+      goals.forEach(function(g){
+        var text = GOALS[g] ? GOALS[g] : g;
+        html += '<div class="s-line"><span class="check">✓</span><span>' + escapeHtml(text) + '</span></div>';
+      });
+      html += '</div>';
+    }
+
+    if(state.expected.length){
+      html += '<div class="expected-block"><div class="e-label">Что должно стать проще</div><div class="chip-row">';
+      state.expected.forEach(function(e){
+        html += '<span class="chip">' + escapeHtml(EXPECTED[e]) + '</span>';
+      });
+      html += '</div></div>';
+    }
+
+    var expLines = buildExperimentLines();
+    html += '<div class="experiment-block"><div class="e-label">План эксперимента</div>';
+    html += '<div class="e-sub">Следующие 5 рабочих дней попробую:</div>';
+    if(expLines.length === 0){
+      html += '<div class="e-line"><span>Добавьте хотя бы один момент и действие, чтобы собрать план.</span></div>';
+    } else {
+      expLines.forEach(function(line){
+        html += '<div class="e-line"><span class="check">✓</span><span>' + escapeHtml(line) + '</span></div>';
+      });
+    }
+    html += '</div>';
+
+    html += '</div>';
+    wrap.innerHTML = html;
+
+    document.getElementById("saveBtn").disabled = false;
+    saveDraft();
+  }
+
+  // ---------- save ----------
+
+  function initSave(){
+    document.getElementById("saveBtn").addEventListener("click", function(){
+      persist();
+      var status = document.getElementById("saveStatus");
+      status.textContent = "Сохранено · " + lastSavedAt;
+      status.classList.add("show");
+      document.getElementById("nextSection").hidden = false;
+    });
+  }
+
+  // ---------- init ----------
+
+  restoreDraft();
+
+  renderTileGrid("contextGrid", CONTEXT, state.context, {}, function(){ saveDraft(); });
+  renderTileGrid("signalGrid", SIGNALS, state.signals, {}, function(){ renderSummary(); saveDraft(); });
+  renderTileGrid("triggerGrid", TRIGGERS, state.triggers, {}, function(){ renderSummary(); saveDraft(); });
+  renderTileGrid("activityGrid", ACTIVITIES, state.activities, {}, function(){
+    document.getElementById("activityOtherInput").classList.toggle("show", state.activities.indexOf("other") !== -1);
+    renderSummary(); saveDraft();
+  });
+  document.getElementById("activityOtherInput").classList.toggle("show", state.activities.indexOf("other") !== -1);
+  document.getElementById("activityOtherInput").value = state.activityOther;
+
+  renderDurationGrid();
+
+  renderTileGrid("obstacleGrid", OBSTACLES, state.obstacles, {}, function(){ saveDraft(); });
+
+  function rerenderGoals(){
+    renderTileGrid("goalGrid", GOALS, state.goals, { max:MAX_GOALS }, function(){
+      document.getElementById("goalOtherInput").classList.toggle("show", state.goals.indexOf("other") !== -1);
+      document.getElementById("goalHint").textContent = "Выбрано " + state.goals.length + " из " + MAX_GOALS;
+      rerenderGoals();
+      renderSummary(); saveDraft();
+    });
+  }
+  rerenderGoals();
+  document.getElementById("goalOtherInput").classList.toggle("show", state.goals.indexOf("other") !== -1);
+  document.getElementById("goalOtherInput").value = state.goalOther;
+  document.getElementById("goalHint").textContent = "Выбрано " + state.goals.length + " из " + MAX_GOALS;
+
+  renderTileGrid("resultGrid", EXPECTED, state.expected, {}, function(){ renderSummary(); saveDraft(); });
+
+  renderSummary();
+  initSave();
+
+  if(hasSaved){
+    document.getElementById("nextSection").hidden = false;
+    if(lastSavedAt){
+      var status = document.getElementById("saveStatus");
+      status.textContent = "Сохранено · " + lastSavedAt;
+      status.classList.add("show");
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
