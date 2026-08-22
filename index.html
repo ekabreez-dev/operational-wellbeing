@@ -550,7 +550,7 @@
      события никуда не отправляются, а прогресс и профиль
      остаются только в браузере пользователя.
      ========================================================== */
-  var ANALYTICS_ENDPOINT = "";
+  var ANALYTICS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxE9GmUz3GA1qnylbCQJ8sWTo3ckOoC7TdsNQh5J9Pn_ACVX7UzWdC9EcQNCMO85Znb/exec";
   var ANALYTICS_VERSION = "wd_audit_v11";
   var SESSION_KEY = "wd_session_id_v1";
   function getSessionId(){
@@ -1699,7 +1699,9 @@
 
     sendAnalyticsEvent("audit_completed", {
       audit_id: auditId, repeat: repeatAudit, percent: percent, top_configuration: topConfig,
-      significant_mechanisms: sigMechs.map(function(m){ return m.id; }), toolkit_candidates: sigMechs.map(function(m){ return MECHANISM_ACTIONS[m.id].toolName; })
+      significant_mechanisms: sigMechs.map(function(m){ return m.id; }), toolkit_candidates: sigMechs.map(function(m){ return MECHANISM_ACTIONS[m.id].toolName; }),
+      priority_answer: priorityOption ? priorityOption.label : null,
+      top_signals: topSignalsForStore.map(function(s){ return s.pattern; })
     });
 
     pushHistory(percent);
