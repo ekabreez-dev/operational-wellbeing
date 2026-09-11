@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чек-ин эмоций</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,600;1,400&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f1efef; min-height: 100vh; }
+.ec-wrap { font-family: 'Alegreya Sans', sans-serif; background: #f1efef; color: #111; padding: 2.5rem 2rem 4rem; max-width: 860px; margin: 0 auto; }
+
+.ec-top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; gap: 1rem; flex-wrap: wrap; }
+.ec-eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #999; font-weight: 400; margin-bottom: 0.5rem; }
+.ec-title { font-family: 'Alegreya', serif; font-size: 40px; font-weight: 400; line-height: 1.05; color: #111; }
+.ec-title em { font-style: italic; color: #5f6b72; }
+.ec-subtitle { font-size: 13px; color: #aaa; font-weight: 300; margin-top: 0.6rem; max-width: 46ch; line-height: 1.5; }
+
+.ec-top-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; padding-top: 6px; }
+.ec-save-indicator { font-size: 11px; color: #aaa; font-weight: 300; letter-spacing: 0.05em; height: 16px; transition: color 0.3s; display: flex; align-items: center; gap: 6px; }
+.ec-save-indicator.saving { color: #5f6b72; }
+.ec-save-indicator.saved { color: #5f6b72; }
+.ec-save-indicator.error { color: #D62839; }
+.save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0; transition: opacity 0.3s; }
+.ec-save-indicator.saving .save-dot, .ec-save-indicator.saved .save-dot, .ec-save-indicator.error .save-dot { opacity: 1; }
+.ec-reset-btn { background: none; border: 0.5px solid #e0e0e0; border-radius: 6px; padding: 6px 14px; font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #bbb; cursor: pointer; letter-spacing: 0.05em; transition: border-color 0.15s, color 0.15s; }
+.ec-reset-btn:hover { border-color: #D62839; color: #D62839; }
+
+.ec-team-notice { background: #f5f2ec; border-left: 3px solid #8a7a6a; border-radius: 0 10px 10px 0; padding: 12px 16px; margin-bottom: 1.5rem; }
+.ec-team-notice b { font-size: 12.5px; color: #5a4f42; font-weight: 500; }
+.ec-team-notice p { font-size: 11.5px; color: #8a7a6a; font-weight: 300; line-height: 1.55; margin-top: 5px; }
+
+.ec-card { background: #fff; border: 0.5px solid #e6e6e6; border-radius: 16px; padding: 1.5rem 1.5rem; margin-bottom: 1.5rem; }
+.ec-card.flat { background: #f9f9f9; border: none; }
+.ec-card-title { font-family: 'Alegreya', serif; font-size: 20px; font-weight: 600; color: #111; margin-bottom: 4px; }
+.ec-card-sub { font-size: 12.5px; color: #999; font-weight: 300; line-height: 1.55; margin-bottom: 1rem; }
+
+.ec-progress { height: 6px; background: #eee; border-radius: 99px; overflow: hidden; margin: 0.75rem 0; }
+.ec-progress > i { display: block; height: 100%; background: #5f6b72; transition: width 0.3s; }
+.ec-progress-label { font-size: 11px; color: #999; }
+
+.ec-scale-field { margin-bottom: 1.1rem; }
+.ec-scale-label { font-size: 12.5px; font-weight: 500; color: #333; margin-bottom: 7px; display: block; }
+.ec-scale-row { display: flex; gap: 6px; }
+.ec-scale-btn { flex: 1; border: 1px solid #e2e2e2; background: #fff; border-radius: 8px; padding: 9px 0; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #999; cursor: pointer; transition: all 0.12s; }
+.ec-scale-btn.sel { background: #5f6b72; border-color: #5f6b72; color: #fff; font-weight: 500; }
+.ec-scale-hint { display: flex; justify-content: space-between; font-size: 9.5px; color: #ccc; margin-top: 4px; }
+
+.ec-tags-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 1.1rem; }
+.ec-tag-btn { border: 1px solid #e2e2e2; background: #fff; border-radius: 999px; padding: 7px 13px; font-family: 'Alegreya Sans', sans-serif; font-size: 12px; color: #777; cursor: pointer; transition: all 0.12s; }
+.ec-tag-btn.sel { background: #5f6b72; border-color: #5f6b72; color: #fff; }
+
+.ec-field { margin-bottom: 1.1rem; }
+.ec-field label { display: block; font-size: 12.5px; font-weight: 500; color: #333; margin-bottom: 6px; }
+.ec-field input[type="text"], .ec-field textarea { width: 100%; border: 0.5px solid #e2e2e2; border-radius: 8px; background: #fafafa; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #333; outline: none; padding: 9px 11px; }
+.ec-field input:focus, .ec-field textarea:focus { border-color: #5f6b72; background: #fff; }
+
+.ec-btn { width: 100%; background: #5f6b72; color: #fff; border: none; border-radius: 10px; padding: 12px; font-family: 'Alegreya Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
+.ec-btn:hover { background: #515b61; }
+.ec-btn.secondary { background: transparent; border: 1px solid #ddd; color: #777; }
+.ec-btn.secondary:hover { border-color: #5f6b72; color: #5f6b72; background: transparent; }
+.ec-btn.danger { background: #D62839; }
+.ec-btn.danger:hover { background: #b8202f; }
+.ec-btn-row { display: flex; gap: 10px; margin-top: 4px; }
+.ec-btn-row .ec-btn { width: auto; flex: 1; }
+
+.ec-entries { display: flex; flex-direction: column; gap: 10px; }
+.ec-entry { background: #f9f9f9; border-radius: 10px; padding: 12px 14px; }
+.ec-entry-head { display: flex; justify-content: space-between; align-items: baseline; }
+.ec-entry-date { font-size: 12px; font-weight: 500; color: #333; }
+.ec-entry-time { font-size: 10px; color: #bbb; }
+.ec-entry-dims { display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; }
+.ec-entry-dim { font-size: 10.5px; color: #999; }
+.ec-entry-dim b { color: #5f6b72; font-weight: 500; }
+.ec-entry-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px; }
+.ec-entry-tag { font-size: 9.5px; background: #eee; color: #888; border-radius: 999px; padding: 2px 8px; }
+.ec-entry-note { font-size: 11px; color: #888; margin-top: 6px; line-height: 1.5; }
+
+.ec-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 1rem 0; }
+.ec-stat { background: #f9f9f9; border-radius: 10px; padding: 0.8rem 0.6rem; text-align: center; }
+.ec-stat-label { font-size: 9.5px; letter-spacing: 0.04em; text-transform: uppercase; color: #bbb; margin-bottom: 4px; }
+.ec-stat-val { font-family: 'Alegreya', serif; font-size: 22px; font-weight: 600; color: #111; line-height: 1; }
+
+.ec-tagchart { display: flex; flex-direction: column; gap: 8px; margin-top: 0.5rem; }
+.ec-tagchart-row { display: grid; grid-template-columns: 140px 1fr 28px; align-items: center; gap: 8px; }
+.ec-tagchart-label { font-size: 11.5px; color: #555; }
+.ec-tagchart-track { height: 8px; background: #eee; border-radius: 99px; overflow: hidden; }
+.ec-tagchart-bar { height: 100%; background: #5f6b72; border-radius: 99px; }
+.ec-tagchart-count { font-size: 10.5px; color: #999; text-align: right; }
+
+.ec-care-note { background: #f5f2ec; border-left: 3px solid #8a7a6a; border-radius: 0 10px 10px 0; padding: 12px 14px; margin-top: 1rem; font-size: 12px; color: #8a7a6a; line-height: 1.6; }
+
+.ec-task { display: flex; align-items: flex-start; gap: 10px; background: #f9f9f9; border-radius: 9px; padding: 10px 12px; margin-bottom: 7px; cursor: pointer; transition: background 0.12s; }
+.ec-task.done { background: #eaf1ec; }
+.ec-task-check { width: 18px; height: 18px; flex: 0 0 auto; border-radius: 50%; border: 1.5px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; margin-top: 1px; }
+.ec-task.done .ec-task-check { background: #5f6b72; border-color: #5f6b72; }
+.ec-task-text { font-size: 13px; color: #333; line-height: 1.4; }
+
+.ec-compare { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ec-compare-item { background: #f9f9f9; border-radius: 10px; padding: 0.8rem 0.6rem; text-align: center; }
+.ec-compare-label { font-size: 9.5px; color: #bbb; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 5px; }
+.ec-compare-val { font-family: 'Alegreya', serif; font-size: 16px; font-weight: 600; color: #111; }
+
+.ec-history-item { border-top: 0.5px solid #eee; padding: 10px 0; }
+.ec-history-item:first-child { border-top: none; }
+.ec-history-rule { font-size: 12.5px; font-weight: 500; color: #333; }
+.ec-history-meta { font-size: 10.5px; color: #999; margin-top: 3px; }
+.ec-history-note { font-size: 11px; color: #888; margin-top: 4px; line-height: 1.5; }
+
+.ec-trend-chart { display: flex; align-items: flex-end; gap: 10px; height: 90px; padding-top: 6px; }
+.ec-trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+.ec-trend-bar { width: 100%; max-width: 26px; border-radius: 5px 5px 2px 2px; background: #ddd; min-height: 3px; }
+.ec-trend-val { font-size: 9px; color: #bbb; }
+.ec-trend-lbl { font-size: 9px; color: #ccc; margin-top: 4px; }
+.ec-trend-empty { font-size: 12px; color: #ccc; font-weight: 300; padding: 0.5rem 0; }
+
+.ec-daykit-hint { font-size: 11px; color: #bbb; font-weight: 300; line-height: 1.6; margin-bottom: 10px; }
+.ec-footer { font-size: 11px; color: #ccc; font-weight: 300; letter-spacing: 0.05em; }
+
+.ec-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+.ec-modal.visible { display: flex; }
+.ec-dialog { background: #fff; border-radius: 14px; padding: 2rem; max-width: 340px; width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.ec-dialog h3 { font-family: 'Alegreya', serif; font-size: 22px; font-weight: 400; color: #111; margin-bottom: 8px; }
+.ec-dialog p { font-size: 13px; color: #aaa; font-weight: 300; line-height: 1.6; margin-bottom: 1.5rem; }
+</style>
+</head>
+<body>
+
+<div class="ec-wrap">
+
+  <div class="ec-top-bar">
+    <div>
+      <div class="ec-eyebrow">Наблюдение за собой</div>
+      <div class="ec-title"><em>Чек-ин</em> эмоций</div>
+      <div class="ec-subtitle">Чек-ин эмоций в течение рабочего дня. Фиксируйте напряжение, вину, раздражение и усталость в момент, когда они появляются — не по расписанию, а когда это реально происходит.</div>
+    </div>
+    <div class="ec-top-actions">
+      <div class="ec-save-indicator" id="saveIndicator">
+        <div class="save-dot"></div>
+        <span id="saveText">данные сохранены</span>
+      </div>
+      <button class="ec-reset-btn" id="resetBtn">Сбросить трекер</button>
+    </div>
+  </div>
+
+  <div id="teamNoticeSlot"></div>
+
+  <div id="progressSlot"></div>
+
+  <div class="ec-card">
+    <div class="ec-card-title">Записать сейчас</div>
+    <div class="ec-card-sub">Не форма для отчёта — просто зафиксируйте, что происходит прямо сейчас или недавно.</div>
+
+    <div class="ec-scale-field">
+      <label class="ec-scale-label">Напряжение</label>
+      <div class="ec-scale-row" data-scale="tension">
+        <button class="ec-scale-btn" data-v="1">1</button><button class="ec-scale-btn" data-v="2">2</button><button class="ec-scale-btn sel" data-v="3">3</button><button class="ec-scale-btn" data-v="4">4</button><button class="ec-scale-btn" data-v="5">5</button>
+      </div>
+      <div class="ec-scale-hint"><span>нет</span><span>очень сильное</span></div>
+    </div>
+    <div class="ec-scale-field">
+      <label class="ec-scale-label">Чувство вины</label>
+      <div class="ec-scale-row" data-scale="guilt">
+        <button class="ec-scale-btn" data-v="1">1</button><button class="ec-scale-btn" data-v="2">2</button><button class="ec-scale-btn sel" data-v="3">3</button><button class="ec-scale-btn" data-v="4">4</button><button class="ec-scale-btn" data-v="5">5</button>
+      </div>
+      <div class="ec-scale-hint"><span>нет</span><span>очень сильное</span></div>
+    </div>
+    <div class="ec-scale-field">
+      <label class="ec-scale-label">Раздражение</label>
+      <div class="ec-scale-row" data-scale="irritation">
+        <button class="ec-scale-btn" data-v="1">1</button><button class="ec-scale-btn" data-v="2">2</button><button class="ec-scale-btn sel" data-v="3">3</button><button class="ec-scale-btn" data-v="4">4</button><button class="ec-scale-btn" data-v="5">5</button>
+      </div>
+      <div class="ec-scale-hint"><span>нет</span><span>очень сильное</span></div>
+    </div>
+    <div class="ec-scale-field">
+      <label class="ec-scale-label">Усталость</label>
+      <div class="ec-scale-row" data-scale="fatigue">
+        <button class="ec-scale-btn" data-v="1">1</button><button class="ec-scale-btn" data-v="2">2</button><button class="ec-scale-btn sel" data-v="3">3</button><button class="ec-scale-btn" data-v="4">4</button><button class="ec-scale-btn" data-v="5">5</button>
+      </div>
+      <div class="ec-scale-hint"><span>нет</span><span>очень сильная</span></div>
+    </div>
+
+    <div class="ec-field">
+      <label>Что вы чувствовали ещё? <span style="color:#ccc;font-weight:300;">необязательно, можно несколько</span></label>
+      <div class="ec-tags-wrap" id="emotionsWrap"></div>
+    </div>
+
+    <div class="ec-field">
+      <label>Что этому предшествовало? <span style="color:#ccc;font-weight:300;">необязательно, можно несколько</span></label>
+      <div class="ec-tags-wrap" id="tagsWrap"></div>
+    </div>
+
+    <div class="ec-field">
+      <label>Ситуация или разговор, после которых это появилось</label>
+      <input type="text" id="situationInput" placeholder="коротко, своими словами">
+    </div>
+    <div class="ec-field">
+      <label>Что произошло дальше</label>
+      <input type="text" id="afterInput" placeholder="например: промолчал(а) и доделал(а) задачу">
+    </div>
+
+    <button class="ec-btn" id="saveEntryBtn">Сохранить запись</button>
+  </div>
+
+  <div id="entriesSlot"></div>
+
+  <div id="cycleSlot"></div>
+
+  <div id="statsSlot"></div>
+
+  <div class="ec-card flat">
+    <div class="ec-card-title" style="font-size:16px;">Что чаще всего этому предшествует</div>
+    <div class="ec-card-sub" style="margin-bottom:0.5rem;">По всем сохранённым записям.</div>
+    <div id="tagChartSlot"></div>
+  </div>
+
+  <div class="ec-card flat">
+    <div class="ec-card-title" style="font-size:16px;">Тренд по неделям</div>
+    <div class="ec-card-sub">Среднее по всем четырём шкалам — меньше значит спокойнее.</div>
+    <div id="trendSlot"></div>
+  </div>
+
+  <div id="streakSlot"></div>
+
+  <div id="historySlot"></div>
+
+  <div class="ec-daykit-hint">Правило, которое вы сформулируете здесь, уже используется для механизма «Эмоциональная нагрузка» в Daykit. <!-- TODO: замените на реальную ссылку на Daykit, когда домен будет готов --></div>
+
+  <div class="ec-footer">данные хранятся в браузере на этом устройстве · без регистрации · <a href="#" id="exportCsv" style="color:#5f6b72;">скачать все данные (.csv)</a></div>
+</div>
+
+<div class="ec-modal" id="resetConfirm">
+  <div class="ec-dialog">
+    <h3>Сбросить всё?</h3>
+    <p>Все записи, правило и история будут удалены без возможности восстановления.</p>
+    <div class="ec-btn-row">
+      <button class="ec-btn secondary" id="cancelReset">Отмена</button>
+      <button class="ec-btn danger" id="confirmReset">Сбросить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TAGS = ['Сообщение или письмо','Встреча','Новая задача от руководителя','Дедлайн','Отказ или просьба','Конфликт с коллегой','Ожидание и неопределённость','Другое'];
+// separate from TAGS on purpose: TAGS answer "what triggered this", EMOTIONS answer
+// "what did it actually feel like" — the 4 scales give intensity, this gives the
+// specific, nameable shape of it, including a couple of positive states so the tool
+// isn't only ever collecting bad news.
+const EMOTIONS = ['Желание бросить всё','Ощущение, что достало','Неохота','Тревога','Энтузиазм','Интерес','Гордость за результат'];
+const DIMS = [
+  { key:'tension', label:'Напряжение' },
+  { key:'guilt', label:'Чувство вины' },
+  { key:'irritation', label:'Раздражение' },
+  { key:'fatigue', label:'Усталость' }
+];
+const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const LS_KEY = 'emotional_checkin_v1';
+const OBSERVE_DAYS_NEEDED = 5;
+const EXPERIMENT_DAYS = 5;
+
+/* ============================================================
+   ANALYTICS + TEAM CONTEXT — same endpoint, event shape and
+   session_id key as Daykit and the Energy Tracker, so all tools
+   land in one funnel and can be joined by session_id same-origin.
+   ============================================================ */
+const ANALYTICS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxE9GmUz3GA1qnylbCQJ8sWTo3ckOoC7TdsNQh5J9Pn_ACVX7UzWdC9EcQNCMO85Znb/exec";
+const ANALYTICS_VERSION = "wd_emotional_checkin_v1";
+const ANALYTICS_SESSION_KEY = "wd_session_id_v1";
+function generateUUID(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16); });
+}
+function getAnalyticsSessionId(){
+  try { let id = localStorage.getItem(ANALYTICS_SESSION_KEY); if (!id) { id = generateUUID(); localStorage.setItem(ANALYTICS_SESSION_KEY, id); } return id; }
+  catch(e) { return generateUUID(); }
+}
+const TEAM_CONTEXT = (function(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const org = (params.get('org') || '').trim(), team = (params.get('team') || '').trim();
+    return { org: org || null, team: team || null };
+  } catch(e) { return { org: null, team: null }; }
+})();
+function sendAnalyticsEvent(name, payload){
+  if (!ANALYTICS_ENDPOINT) return;
+  try {
+    fetch(ANALYTICS_ENDPOINT, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ version: ANALYTICS_VERSION, event: name, ts: Date.now(), session_id: getAnalyticsSessionId(), org: TEAM_CONTEXT.org, team: TEAM_CONTEXT.team, payload: payload || {} })
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+function today(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmt(dateStr){ const d = new Date(dateStr+'T00:00:00'); return d.getDate()+' '+MONTHS[d.getMonth()]; }
+function daysBetween(a, b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000); }
+function weekdayIdx(dateStr){ const d = new Date(dateStr+'T00:00:00'); return (d.getDay()||7)-1; }
+function mondayOfWeek(dateStr){ const d = new Date(dateStr+'T00:00:00'); const wd = (d.getDay()||7); d.setDate(d.getDate()-wd+1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+function def(){
+  return { entries: [], rule: null, ruleCreatedDate: null, experimentTasks: null, experimentNote: '', history: [], analyticsOpenedSent: false };
+}
+function loadAll(){
+  try { const raw = localStorage.getItem(LS_KEY); return raw ? Object.assign(def(), JSON.parse(raw)) : def(); }
+  catch(e) { return def(); }
+}
+let appState = loadAll();
+let selectedTags = new Set();
+let selectedEmotions = new Set();
+
+const saveIndicator = document.getElementById('saveIndicator');
+const saveText = document.getElementById('saveText');
+let saveTimer = null;
+function showSaving(){ saveIndicator.className = 'ec-save-indicator saving'; saveText.textContent = 'сохраняем...'; }
+function showSaved(){ saveIndicator.className = 'ec-save-indicator saved'; saveText.textContent = 'сохранено ✓'; clearTimeout(saveTimer); saveTimer = setTimeout(()=>{ saveIndicator.className='ec-save-indicator'; saveText.textContent='данные сохранены'; }, 2000); }
+function showSaveError(){ saveIndicator.className = 'ec-save-indicator error'; saveText.textContent = 'не удалось сохранить'; }
+function saveAll(){ try { localStorage.setItem(LS_KEY, JSON.stringify(appState)); showSaved(); } catch(e) { showSaveError(); } }
+
+function ruWord(n, forms){ const n100=n%100, n10=n%10; if (n100>=11&&n100<=14) return forms[2]; if (n10===1) return forms[0]; if (n10>=2&&n10<=4) return forms[1]; return forms[2]; }
+
+/* ============================================================
+   ENTRY FORM
+   ============================================================ */
+document.querySelectorAll('.ec-scale-row').forEach(row => {
+  row.querySelectorAll('.ec-scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.ec-scale-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+    });
+  });
+});
+function renderTagButtons(){
+  const wrap = document.getElementById('tagsWrap');
+  wrap.innerHTML = TAGS.map(t => '<button type="button" class="ec-tag-btn' + (selectedTags.has(t)?' sel':'') + '" data-tag="'+t+'">'+t+'</button>').join('');
+  wrap.querySelectorAll('.ec-tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-tag');
+      if (selectedTags.has(t)) selectedTags.delete(t); else selectedTags.add(t);
+      btn.classList.toggle('sel');
+    });
+  });
+}
+renderTagButtons();
+function renderEmotionButtons(){
+  const wrap = document.getElementById('emotionsWrap');
+  wrap.innerHTML = EMOTIONS.map(t => '<button type="button" class="ec-tag-btn' + (selectedEmotions.has(t)?' sel':'') + '" data-emo="'+t+'">'+t+'</button>').join('');
+  wrap.querySelectorAll('.ec-tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = btn.getAttribute('data-emo');
+      if (selectedEmotions.has(t)) selectedEmotions.delete(t); else selectedEmotions.add(t);
+      btn.classList.toggle('sel');
+    });
+  });
+}
+renderEmotionButtons();
+
+function getScaleValue(key){
+  const sel = document.querySelector('.ec-scale-row[data-scale="'+key+'"] .ec-scale-btn.sel');
+  return sel ? parseInt(sel.getAttribute('data-v')) : 3;
+}
+function resetEntryForm(){
+  document.querySelectorAll('.ec-scale-row').forEach(row => {
+    row.querySelectorAll('.ec-scale-btn').forEach(b => b.classList.toggle('sel', b.getAttribute('data-v') === '3'));
+  });
+  selectedTags = new Set();
+  renderTagButtons();
+  selectedEmotions = new Set();
+  renderEmotionButtons();
+  document.getElementById('situationInput').value = '';
+  document.getElementById('afterInput').value = '';
+}
+
+document.getElementById('saveEntryBtn').addEventListener('click', () => {
+  const isFirstEver = appState.entries.length === 0;
+  const entry = {
+    id: 'e_' + Date.now(),
+    date: today(),
+    time: new Date().toISOString(),
+    tension: getScaleValue('tension'),
+    guilt: getScaleValue('guilt'),
+    irritation: getScaleValue('irritation'),
+    fatigue: getScaleValue('fatigue'),
+    situation: document.getElementById('situationInput').value.trim(),
+    whatHappened: document.getElementById('afterInput').value.trim(),
+    tags: [...selectedTags],
+    emotions: [...selectedEmotions]
+  };
+  appState.entries.push(entry);
+  if (isFirstEver) sendAnalyticsEvent('first_emotional_entry_saved', {});
+  saveAll();
+  resetEntryForm();
+  renderAll();
+});
+
+/* ============================================================
+   HELPERS ON ENTRIES
+   ============================================================ */
+function entryLoad(e){ return (e.tension + e.guilt + e.irritation + e.fatigue) / 4; }
+function observeEntries(){
+  // entries that count toward the CURRENT observation window: everything logged
+  // after the last completed cycle ended (or from the very start, if none yet)
+  const since = appState.history.length ? appState.history[appState.history.length-1].endDate : null;
+  return appState.entries.filter(e => !since || e.date > since).filter(e => !appState.ruleCreatedDate || e.date < appState.ruleCreatedDate);
+}
+function observeDaysCount(){ return new Set(observeEntries().map(e => e.date)).size; }
+function experimentEntries(){
+  if (!appState.ruleCreatedDate) return [];
+  return appState.entries.filter(e => e.date >= appState.ruleCreatedDate);
+}
+function avgOf(entries, key){ if (!entries.length) return null; return entries.reduce((s,e)=>s+e[key],0) / entries.length; }
+function topTags(entries, limit){
+  const counts = {};
+  entries.forEach(e => (e.tags||[]).forEach(t => counts[t] = (counts[t]||0)+1));
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, limit||3);
+}
+
+/* ============================================================
+   RENDER: progress / cycle (observe → rule → experiment → done)
+   ============================================================ */
+function renderProgress(){
+  const slot = document.getElementById('progressSlot');
+  if (appState.ruleCreatedDate) { slot.innerHTML = ''; return; } // once a rule exists, the cycle card below takes over
+  const days = observeDaysCount();
+  const pct = Math.min(100, Math.round(days/OBSERVE_DAYS_NEEDED*100));
+  slot.innerHTML =
+    '<div class="ec-card flat">' +
+      '<div class="ec-card-title" style="font-size:16px;">Сначала наблюдаем</div>' +
+      '<div class="ec-card-sub">Первые ' + OBSERVE_DAYS_NEEDED + ' дней просто фиксируйте, что происходит, ничего не перестраивая.</div>' +
+      '<div class="ec-progress"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="ec-progress-label">Отслежено дней: ' + days + ' из ' + OBSERVE_DAYS_NEEDED + '</div>' +
+    '</div>';
+}
+
+function renderCycle(){
+  const slot = document.getElementById('cycleSlot');
+  if (!appState.ruleCreatedDate) {
+    // phase: ready to set a rule, once enough days observed
+    if (observeDaysCount() < OBSERVE_DAYS_NEEDED) { slot.innerHTML = ''; return; }
+    const entries = observeEntries();
+    const avgs = {}; DIMS.forEach(d => avgs[d.key] = avgOf(entries, d.key));
+    const tags = topTags(entries, 3);
+    slot.innerHTML =
+      '<div class="ec-card">' +
+        '<div class="ec-card-title">Что мы видим за ' + observeDaysCount() + '+ дней</div>' +
+        '<div class="ec-stats">' + DIMS.map(d => '<div class="ec-stat"><div class="ec-stat-label">'+d.label+'</div><div class="ec-stat-val">'+(avgs[d.key]!=null?avgs[d.key].toFixed(1):'—')+'</div></div>').join('') + '</div>' +
+        (tags.length ? '<p class="ec-card-sub" style="margin-top:0.5rem;">Чаще всего перед этим было: ' + tags.map(([t,n])=>'<b style="color:#5f6b72;">'+t+'</b> ('+n+')').join(', ') + '.</p>' : '') +
+        '<p class="ec-card-sub">Посмотрите на записанные ситуации ниже — повторяется ли что-то похожее? На основе этого сформулируйте одно правило, которое хотите попробовать.</p>' +
+        '<div class="ec-field"><label>Правило, которое хочу попробовать</label><textarea id="ruleInput" rows="2" placeholder="например: перед тем как соглашаться на задачу, спрашивать «можно взять на завтра?»"></textarea></div>' +
+        '<button class="ec-btn" id="saveRuleBtn">Сохранить правило</button>' +
+        careNoteHtml(avgs) +
+      '</div>';
+    document.getElementById('saveRuleBtn').addEventListener('click', () => {
+      const text = document.getElementById('ruleInput').value.trim();
+      if (!text) { alert('Сформулируйте правило одним предложением.'); return; }
+      appState.rule = { text, baseline: avgs, topTags: tags.map(([t])=>t) };
+      appState.ruleCreatedDate = today();
+      appState.experimentTasks = generateExperimentTasks(text);
+      sendAnalyticsEvent('emotional_rule_set', {});
+      saveAll(); renderAll();
+    });
+    return;
+  }
+
+  // phase: experiment is active (or ready to complete)
+  const elapsed = Math.min(EXPERIMENT_DAYS, Math.max(1, daysBetween(appState.ruleCreatedDate, today()) + 1));
+  const dayIdx = elapsed - 1;
+  const current = appState.experimentTasks[dayIdx] || { day: elapsed, tasks: [] };
+  const readyToFinish = daysBetween(appState.ruleCreatedDate, today()) + 1 >= EXPERIMENT_DAYS;
+
+  let html = '<div class="ec-card">' +
+    '<div class="ec-card-title">Практика: «' + esc(appState.rule.text) + '»</div>' +
+    '<div class="ec-card-sub">День ' + elapsed + ' из ' + EXPERIMENT_DAYS + '. Продолжайте делать записи выше — так можно будет сравнить с первыми ' + OBSERVE_DAYS_NEEDED + ' днями.</div>' +
+    '<div class="ec-progress"><i style="width:' + Math.round(elapsed/EXPERIMENT_DAYS*100) + '%"></i></div>';
+  current.tasks.forEach((t, i) => {
+    html += '<div class="ec-task' + (t.done?' done':'') + '" data-day="' + dayIdx + '" data-task="' + i + '"><div class="ec-task-check">' + (t.done?'✓':'') + '</div><div class="ec-task-text">' + esc(t.text) + '</div></div>';
+  });
+  html += '</div>';
+
+  if (readyToFinish) {
+    html += '<div class="ec-card flat">' +
+      '<div class="ec-card-title" style="font-size:16px;">Что заметили?</div>' +
+      '<div class="ec-field"><label>Заметка (необязательно)</label><textarea id="cycleNoteInput" rows="2" placeholder="Что оказалось полезным? Что было трудно соблюдать?"></textarea></div>' +
+      '<button class="ec-btn" id="finishCycleBtn">Завершить и сравнить</button>' +
+    '</div>';
+  }
+
+  slot.innerHTML = html;
+  slot.querySelectorAll('.ec-task').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = parseInt(el.getAttribute('data-day')), t = parseInt(el.getAttribute('data-task'));
+      appState.experimentTasks[d].tasks[t].done = !appState.experimentTasks[d].tasks[t].done;
+      saveAll(); renderCycle();
+    });
+  });
+  const finishBtn = document.getElementById('finishCycleBtn');
+  if (finishBtn) finishBtn.addEventListener('click', () => {
+    const note = document.getElementById('cycleNoteInput').value.trim();
+    const after = {}; DIMS.forEach(d => after[d.key] = avgOf(experimentEntries(), d.key));
+    appState.history.push({
+      ruleText: appState.rule.text, before: appState.rule.baseline, after,
+      startDate: appState.ruleCreatedDate, endDate: today(), note
+    });
+    sendAnalyticsEvent('emotional_cycle_completed', {});
+    appState.rule = null; appState.ruleCreatedDate = null; appState.experimentTasks = null;
+    saveAll(); renderAll();
+  });
+}
+function generateExperimentTasks(ruleText){
+  const rows = [
+    [ruleText, 'Сделать запись в чек-ине хотя бы раз сегодня'],
+    [ruleText, 'Отметить, было ли легче, чем на прошлой неделе'],
+    [ruleText, 'Сделать запись в чек-ине'],
+    [ruleText, 'Обратить внимание, в какой ситуации сложнее всего удержать правило'],
+    ['Провести последний день по правилу', 'Сравнить сегодняшние записи с первыми ' + OBSERVE_DAYS_NEEDED + ' днями']
+  ];
+  return rows.map((r,i) => ({ day: i+1, tasks: r.map(text => ({ text, done:false })) }));
+}
+// gentle, non-diagnostic nudge — only shown when the observed averages are
+// consistently high, never names a condition, just points toward a person, not just a log
+function careNoteHtml(avgs){
+  const vals = DIMS.map(d => avgs[d.key]).filter(v => v != null);
+  if (!vals.length) return '';
+  const overall = vals.reduce((a,b)=>a+b,0) / vals.length;
+  if (overall < 4) return '';
+  return '<div class="ec-care-note">Несколько тяжёлых дней подряд. Если станет тяжелее — напишите или позвоните кому-то, а не только сохраните ещё одну запись.</div>';
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================================================
+   RENDER: recent entries list
+   ============================================================ */
+function renderEntries(){
+  const slot = document.getElementById('entriesSlot');
+  if (!appState.entries.length) { slot.innerHTML = ''; return; }
+  const recent = appState.entries.slice().reverse().slice(0, 6);
+  slot.innerHTML = '<div class="ec-card flat"><div class="ec-card-title" style="font-size:16px;">Последние записи</div><div class="ec-entries">' +
+    recent.map(e => {
+      const time = new Date(e.time).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+      return '<div class="ec-entry">' +
+        '<div class="ec-entry-head"><span class="ec-entry-date">' + fmt(e.date) + '</span><span class="ec-entry-time">' + time + '</span></div>' +
+        '<div class="ec-entry-dims">' + DIMS.map(d => '<span class="ec-entry-dim">'+d.label+' <b>'+e[d.key]+'</b></span>').join('') + '</div>' +
+        (e.emotions && e.emotions.length ? '<div class="ec-entry-tags">' + e.emotions.map(t=>'<span class="ec-entry-tag" style="background:#eef0e9;color:#6b7a5a;">'+esc(t)+'</span>').join('') + '</div>' : '') +
+        (e.tags && e.tags.length ? '<div class="ec-entry-tags">' + e.tags.map(t=>'<span class="ec-entry-tag">'+esc(t)+'</span>').join('') + '</div>' : '') +
+        (e.situation ? '<div class="ec-entry-note">' + esc(e.situation) + '</div>' : '') +
+        (e.whatHappened ? '<div class="ec-entry-note">Дальше: ' + esc(e.whatHappened) + '</div>' : '') +
+      '</div>';
+    }).join('') +
+  '</div></div>';
+}
+
+/* ============================================================
+   RENDER: stats, tag chart, weekly trend
+   ============================================================ */
+function renderStats(){
+  const slot = document.getElementById('statsSlot');
+  if (!appState.entries.length) { slot.innerHTML = ''; return; }
+  const week = appState.entries.filter(e => daysBetween(e.date, today()) < 7);
+  if (!week.length) { slot.innerHTML = ''; return; }
+  const avgs = {}; DIMS.forEach(d => avgs[d.key] = avgOf(week, d.key));
+  slot.innerHTML = '<div class="ec-card flat"><div class="ec-card-title" style="font-size:16px;">За последние 7 дней</div><div class="ec-stats">' +
+    DIMS.map(d => '<div class="ec-stat"><div class="ec-stat-label">'+d.label+'</div><div class="ec-stat-val">'+avgs[d.key].toFixed(1)+'</div></div>').join('') +
+  '</div></div>';
+}
+function renderTagChart(){
+  const slot = document.getElementById('tagChartSlot');
+  const tags = topTags(appState.entries, 8);
+  if (!tags.length) { slot.innerHTML = '<div class="ec-trend-empty">Пока нет отмеченных триггеров.</div>'; return; }
+  const max = tags[0][1];
+  slot.innerHTML = '<div class="ec-tagchart">' + tags.map(([t,n]) =>
+    '<div class="ec-tagchart-row"><div class="ec-tagchart-label">' + esc(t) + '</div><div class="ec-tagchart-track"><div class="ec-tagchart-bar" style="width:' + Math.max(6, n/max*100) + '%"></div></div><div class="ec-tagchart-count">' + n + '</div></div>'
+  ).join('') + '</div>';
+}
+function renderTrend(){
+  const slot = document.getElementById('trendSlot');
+  const weeks = {};
+  appState.entries.forEach(e => { const wk = mondayOfWeek(e.date); (weeks[wk] = weeks[wk] || []).push(entryLoad(e)); });
+  const weekKeys = Object.keys(weeks).sort().slice(-8);
+  if (weekKeys.length < 2) { slot.innerHTML = '<div class="ec-trend-empty">Тренд появится, когда наберётся хотя бы пара недель с записями.</div>'; return; }
+  const curWeek = mondayOfWeek(today());
+  slot.innerHTML = '<div class="ec-trend-chart">' + weekKeys.map(wk => {
+    const vals = weeks[wk];
+    const avg = vals.reduce((a,b)=>a+b,0) / vals.length;
+    const pct = Math.max(4, avg/5*100);
+    return '<div class="ec-trend-col"><div class="ec-trend-val">' + avg.toFixed(1) + '</div><div class="ec-trend-bar" style="height:' + pct + '%;background:' + loadColor(avg) + (wk===curWeek?';outline:2px solid #5f6b72;outline-offset:1px':'') + '"></div><div class="ec-trend-lbl">' + fmt(wk) + '</div></div>';
+  }).join('') + '</div>';
+}
+// low load = calm = green; high load = intense = red — the OPPOSITE mapping from the
+// Energy Tracker, because here low numbers are the good outcome, not high ones.
+function loadColor(avg){
+  if (avg <= 1.8) return '#2D6A4F';
+  if (avg <= 2.6) return '#52B788';
+  if (avg <= 3.4) return '#F4A259';
+  if (avg <= 4.2) return '#E07A5F';
+  return '#D62839';
+}
+
+/* ============================================================
+   RENDER: streaks/records, history
+   ============================================================ */
+function renderStreak(){
+  const slot = document.getElementById('streakSlot');
+  const dates = new Set(appState.entries.map(e => e.date));
+  if (!dates.size) { slot.innerHTML = ''; return; }
+  let cur = 0; { const startAt = dates.has(today()) ? 0 : 1; for (let i=startAt;;i++){ const d=new Date(); d.setDate(d.getDate()-i); if (!dates.has(d.toISOString().slice(0,10))) break; cur++; } }
+  let longest = 0, run = 0, prev = null;
+  [...dates].sort().forEach(dStr => { const d = new Date(dStr+'T00:00:00'); run = (prev && Math.round((d-prev)/86400000)===1) ? run+1 : 1; longest = Math.max(longest, run); prev = d; });
+  // calmest day = lowest average load among days with at least one entry
+  const dayLoads = {};
+  appState.entries.forEach(e => { (dayLoads[e.date] = dayLoads[e.date] || []).push(entryLoad(e)); });
+  let calmest = null;
+  Object.entries(dayLoads).forEach(([d, vals]) => { const avg = vals.reduce((a,b)=>a+b,0)/vals.length; if (!calmest || avg < calmest.avg) calmest = {date:d, avg}; });
+  slot.innerHTML = '<div class="ec-card flat"><div class="ec-card-title" style="font-size:16px;">Регулярность и рекорды</div><div class="ec-stats">' +
+    '<div class="ec-stat"><div class="ec-stat-label">' + ruWord(cur,['день подряд','дня подряд','дней подряд']) + '</div><div class="ec-stat-val">' + cur + '</div></div>' +
+    '<div class="ec-stat"><div class="ec-stat-label">рекорд подряд</div><div class="ec-stat-val">' + longest + '</div></div>' +
+    '<div class="ec-stat"><div class="ec-stat-label">' + (calmest ? 'самый спокойный день · ' + fmt(calmest.date) : 'самый спокойный день') + '</div><div class="ec-stat-val">' + (calmest ? calmest.avg.toFixed(1) : '—') + '</div></div>' +
+  '</div></div>';
+}
+function renderHistory(){
+  const slot = document.getElementById('historySlot');
+  if (!appState.history.length) { slot.innerHTML = ''; return; }
+  slot.innerHTML = '<div class="ec-card flat"><div class="ec-card-title" style="font-size:16px;">Прошлые правила</div>' +
+    appState.history.slice().reverse().map(h => {
+      const beforeAvg = DIMS.reduce((s,d)=>s+(h.before[d.key]||0),0)/DIMS.length;
+      const afterAvg = DIMS.reduce((s,d)=>s+(h.after[d.key]||0),0)/DIMS.length;
+      return '<div class="ec-history-item"><div class="ec-history-rule">' + esc(h.ruleText) + '</div>' +
+        '<div class="ec-history-meta">' + fmt(h.startDate) + ' — ' + fmt(h.endDate) + ' · среднее ' + beforeAvg.toFixed(1) + ' → ' + afterAvg.toFixed(1) + '</div>' +
+        (h.note ? '<div class="ec-history-note">' + esc(h.note) + '</div>' : '') +
+      '</div>';
+    }).join('') +
+  '</div>';
+}
+
+/* ============================================================
+   CSV EXPORT
+   ============================================================ */
+function csvEscape(s){ s = String(s==null?'':s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }
+function buildCsv(){
+  const rows = [['Дата','Время','Напряжение','Вина','Раздражение','Усталость','Эмоции','Триггеры','Ситуация','Что дальше']];
+  appState.entries.forEach(e => {
+    const time = new Date(e.time).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+    rows.push([e.date, time, e.tension, e.guilt, e.irritation, e.fatigue, (e.emotions||[]).join('; '), (e.tags||[]).join('; '), e.situation||'', e.whatHappened||'']);
+  });
+  return rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+}
+document.getElementById('exportCsv').addEventListener('click', (e) => {
+  e.preventDefault();
+  const csv = '\uFEFF' + buildCsv();
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'emotional-checkin-data.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+/* ============================================================
+   RESET
+   ============================================================ */
+document.getElementById('resetBtn').addEventListener('click', () => document.getElementById('resetConfirm').classList.add('visible'));
+document.getElementById('cancelReset').addEventListener('click', () => document.getElementById('resetConfirm').classList.remove('visible'));
+document.getElementById('confirmReset').addEventListener('click', () => {
+  appState = def();
+  saveAll();
+  document.getElementById('resetConfirm').classList.remove('visible');
+  renderAll();
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function renderAll(){
+  renderProgress();
+  renderCycle();
+  renderEntries();
+  renderStats();
+  renderTagChart();
+  renderTrend();
+  renderStreak();
+  renderHistory();
+}
+renderAll();
+
+if (!appState.analyticsOpenedSent) {
+  appState.analyticsOpenedSent = true;
+  sendAnalyticsEvent('emotional_checkin_opened', {});
+  saveAll();
+}
+if (TEAM_CONTEXT.team) {
+  document.getElementById('teamNoticeSlot').innerHTML =
+    '<div class="ec-team-notice"><b>Вы используете чек-ин эмоций от команды «' + TEAM_CONTEXT.team.replace(/</g,'&lt;') + '»</b>' +
+    '<p>Это особенно чувствительные данные — они не передаются руководителю ни в каком виде, включая содержание записей. Команда может получить только предельно общую обезличенную статистику, и только при достаточном числе участников.</p></div>';
+}
+</script>
+</body>
+</html>
