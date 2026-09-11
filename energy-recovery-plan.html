@@ -3,815 +3,980 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>План восстановления энергии — Operational Wellbeing</title>
+<title>Трекер энергии</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,600;1,400&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#FAFAF9;
-    --surface:#FFFFFF;
-    --surface-alt:#F4F4F2;
-    --border:#E4E3DF;
-    --border-strong:#D3D2CD;
-    --text:#17181A;
-    --text-secondary:#6B6B70;
-    --text-tertiary:#A2A1A0;
-    --accent:#2C3446;
-    --accent-soft:#EBEEF2;
-    --accent-line:#C7CDD6;
-    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --radius: 10px;
-    --radius-sm: 6px;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #f1efef; min-height: 100vh; }
+.et-wrap { font-family: 'Alegreya Sans', sans-serif; background: #f1efef; color: #111; padding: 2.5rem 2rem 4rem; max-width: 860px; margin: 0 auto; }
 
-  *{ box-sizing:border-box; }
-  html{ -webkit-font-smoothing:antialiased; }
+.et-top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.75rem; gap: 1rem; flex-wrap: wrap; }
+.et-header {}
+.et-eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #999; font-weight: 400; margin-bottom: 0.5rem; }
+.et-title { font-family: 'Alegreya', serif; font-size: 42px; font-weight: 400; line-height: 1.05; color: #111; }
+.et-title em { font-style: italic; color: #5f6b72; }
+.et-subtitle { font-size: 13px; color: #aaa; font-weight: 300; margin-top: 0.6rem; }
 
-  body{
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--sans);
-    line-height:1.5;
-    padding:56px 20px 96px;
-  }
+.et-top-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; padding-top: 6px; }
+.et-save-indicator { font-size: 11px; color: #aaa; font-weight: 300; letter-spacing: 0.05em; height: 16px; transition: color 0.3s; display: flex; align-items: center; gap: 6px; }
+.et-save-indicator.saving { color: #5f6b72; }
+.et-save-indicator.saved { color: #5f6b72; }
+.et-save-indicator.error { color: #D62839; }
+.et-save-indicator.error .save-dot { opacity: 1; }
+.save-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0; transition: opacity 0.3s; }
+.et-save-indicator.saving .save-dot,
+.et-save-indicator.saved .save-dot { opacity: 1; }
 
-  .wrap{ max-width:680px; margin:0 auto; }
-  a{ color:inherit; }
+.et-reset-btn { background: none; border: 0.5px solid #e0e0e0; border-radius: 6px; padding: 6px 14px; font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #bbb; cursor: pointer; letter-spacing: 0.05em; transition: border-color 0.15s, color 0.15s; }
+.et-reset-btn:hover { border-color: #D62839; color: #D62839; }
 
-  /* ---------- header ---------- */
+/* --- "Как сейчас?" hero button --- */
+.et-now-block { margin-bottom: 2rem; }
+.et-now-btn {
+  width: 100%; background: #5f6b72; color: #fff; border: none; border-radius: 16px;
+  padding: 1.1rem 1.5rem; font-family: 'Alegreya Sans', sans-serif; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  transition: background 0.15s, transform 0.1s;
+}
+.et-now-btn:hover { background: #515b61; }
+.et-now-btn:active { transform: scale(0.995); }
+.et-now-left { text-align: left; }
+.et-now-title { font-family: 'Alegreya', serif; font-size: 22px; font-style: italic; line-height: 1.1; }
+.et-now-sub { font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 300; margin-top: 3px; letter-spacing: 0.02em; }
+.et-now-arrow { font-size: 20px; color: rgba(255,255,255,0.85); flex-shrink: 0; }
 
-  .crumbs{ font-size:12.5px; color:var(--text-tertiary); letter-spacing:.02em; }
-  .crumbs .sep{ margin:0 8px; color:var(--border-strong); }
-  .crumbs .current{ color:var(--text-secondary); }
-  .hr{ border:none; border-top:1px solid var(--border); margin:14px 0; }
+.et-remind-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+.et-remind-btn { background: none; border: 0.5px solid #e0e0e0; border-radius: 6px; padding: 6px 12px; font-family: 'Alegreya Sans', sans-serif; font-size: 11px; color: #999; cursor: pointer; letter-spacing: 0.02em; transition: border-color 0.15s, color 0.15s; }
+.et-remind-btn:hover { border-color: #5f6b72; color: #5f6b72; }
 
-  .titlebar{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:6px; }
-  h1{ font-size:21px; font-weight:650; letter-spacing:-.01em; margin:0; }
-  .version{ font-family:var(--mono); font-size:11.5px; color:var(--text-tertiary); white-space:nowrap; }
+.et-week-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+.et-week-label { font-size: 13px; color: #888; font-weight: 400; }
+.et-week-btn { background: none; border: 0.5px solid #ddd; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #888; font-size: 14px; transition: border-color 0.15s, color 0.15s; }
+.et-week-btn:hover { border-color: #5f6b72; color: #5f6b72; }
 
-  .intro{ color:var(--text-secondary); font-size:14.5px; margin:14px 0 0; max-width:58ch; }
+.et-legend { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin-bottom: 2rem; }
+.et-legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; font-weight: 300; }
+.et-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.et-legend-dot[data-v="5"] { background: #2D6A4F; }
+.et-legend-dot[data-v="4"] { background: #52B788; }
+.et-legend-dot[data-v="3"] { background: #F4A259; }
+.et-legend-dot[data-v="2"] { background: #E07A5F; }
+.et-legend-dot[data-v="1"] { background: #D62839; }
 
-  /* ---------- sections ---------- */
+.et-table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+table.et-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.et-table th { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #999; text-align: center; padding: 0 0 1rem; border-bottom: 0.5px solid #e8e8e8; }
+table.et-table th:first-child { text-align: left; width: 96px; }
+table.et-table td { text-align: center; padding: 0; border-bottom: 0.5px solid #f0f0f0; height: 52px; vertical-align: middle; }
+table.et-table td:first-child { text-align: left; font-size: 12px; color: #bbb; font-weight: 400; letter-spacing: 0.05em; padding-right: 1rem; }
+.et-period-name { display: block; color: #666; font-weight: 500; }
+.et-period-range { display: block; font-size: 10px; color: #ccc; margin-top: 1px; }
+.et-sleep-row td { border-top: 1.5px solid #e5e2e2; }
+.et-sleep-row .et-period-name { color: #8a7a6a; }
 
-  section{ margin-top:44px; }
+.et-cell-wrap { position: relative; width: 36px; height: 36px; margin: auto; }
+.et-cell { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: auto; cursor: pointer; border: 1.5px solid transparent; transition: transform 0.15s; position: relative; }
+.et-cell:hover { transform: scale(1.1); }
+.et-cell.empty { border: 1.5px solid #eee; background: transparent; }
+.et-cell.empty:hover { border-color: #5f6b72; }
+.et-cell[data-v="5"] { background: #2D6A4F; }
+.et-cell[data-v="4"] { background: #52B788; }
+.et-cell[data-v="3"] { background: #F4A259; }
+.et-cell[data-v="2"] { background: #E07A5F; }
+.et-cell[data-v="1"] { background: #D62839; }
+.et-cell.selected { border-color: #111; box-shadow: 0 0 0 2px rgba(17,17,17,0.12); }
+.et-cell.is-now::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:1.5px dashed #5f6b72; }
+.et-note-dot { position:absolute; top:-1px; right:-1px; width:7px; height:7px; border-radius:50%; background:#F4A259; border:1.5px solid #fff; }
 
-  .step-label{
-    display:flex; align-items:center; gap:9px;
-    font-size:11.5px; font-weight:650; letter-spacing:.06em; text-transform:uppercase;
-    color:var(--text-tertiary); margin-bottom:6px;
-  }
-  .step-label .n{
-    width:18px; height:18px; border-radius:50%;
-    background:var(--accent-soft); color:var(--accent);
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size:10.5px; font-family:var(--mono); font-weight:700;
-  }
+.et-picker { position: fixed; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; display: none; gap: 10px; align-items: stretch; z-index: 100; box-shadow: 0 4px 24px rgba(0,0,0,0.10); flex-direction: column; width: 240px; }
+.et-picker.visible { display: flex; }
+.et-picker-row { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.et-picker-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; transition: transform 0.12s; border: 2px solid transparent; }
+.et-picker-dot:hover { transform: scale(1.18); }
+.et-picker-dot[data-v="5"] { background: #2D6A4F; }
+.et-picker-dot[data-v="4"] { background: #52B788; }
+.et-picker-dot[data-v="3"] { background: #F4A259; }
+.et-picker-dot[data-v="2"] { background: #E07A5F; }
+.et-picker-dot[data-v="1"] { background: #D62839; }
+.et-picker-dot[data-v="0"] { background: #f4f4f4; border: 1.5px solid #ddd; }
+.et-picker-labels { display: flex; gap: 8px; justify-content: center; }
+.et-picker-lbl { width: 26px; text-align: center; font-size: 9px; color: #bbb; font-family: 'Alegreya Sans', sans-serif; }
+.et-picker-context { font-size: 11px; color: #999; text-align: center; font-weight: 400; }
+.et-picker-note { width: 100%; border: 0.5px solid #eee; border-radius: 8px; background: #fafafa; font-family: 'Alegreya Sans', sans-serif; font-size: 12px; color: #444; outline: none; padding: 8px 10px; }
+.et-picker-note::placeholder { color: #ccc; }
+.et-picker-note:focus { border-color: #5f6b72; background: #fff; }
 
-  h2{ font-size:16.5px; font-weight:650; margin:0 0 4px; letter-spacing:-.005em; }
-  .step-sub{ font-size:13.5px; color:var(--text-secondary); margin:0 0 18px; }
-  .step-hint{ font-size:12px; color:var(--text-tertiary); margin-top:10px; }
+.et-divider { height: 0.5px; background: #f0f0f0; margin: 1.5rem 0; }
 
-  /* ---------- checkbox tile grid (steps 1 & 2) ---------- */
+.et-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 2rem; }
+.et-stat { background: #f9f9f9; border-radius: 10px; padding: 0.875rem 1rem; }
+.et-stat-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #bbb; margin-bottom: 4px; }
+.et-stat-val { font-family: 'Alegreya', serif; font-size: 26px; font-weight: 400; color: #111; line-height: 1; }
+.et-stat-val span { font-family: 'Alegreya Sans', sans-serif; font-size: 12px; color: #bbb; font-weight: 300; }
+.et-stat-sub { font-family: 'Alegreya Sans', sans-serif; font-size: 10px; color: #bbb; font-weight: 400; margin-top: 2px; }
 
-  .tile-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:8px; }
+.et-insight { border-left: 2px solid #5f6b72; padding-left: 1rem; margin-bottom: 1.25rem; }
+.et-insight p { font-size: 12px; color: #888; line-height: 1.6; font-weight: 300; }
+.et-insight strong { color: #5f6b72; font-weight: 500; }
 
-  .tile{ position:relative; }
-  .tile input{ position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer; }
-  .tile label{
-    display:flex; align-items:center; gap:9px;
-    padding:10px 12px;
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    font-size:13.5px; color:var(--text);
-    cursor:pointer;
-    transition:border-color .12s ease, background .12s ease, opacity .12s ease;
-    user-select:none;
-  }
-  .tile .mark{
-    width:16px; height:16px; border-radius:4px;
-    border:1.5px solid var(--border-strong);
-    flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-size:10px; color:transparent;
-    transition:all .12s ease;
-  }
-  .tile input:checked + label .mark{ background:var(--accent); border-color:var(--accent); color:#fff; }
-  .tile input:checked + label{ border-color:var(--accent-line); background:var(--accent-soft); }
-  .tile input:disabled + label{ opacity:.4; cursor:not-allowed; }
-  .tile input:focus-visible + label{ outline:2px solid var(--accent); outline-offset:2px; }
+.et-section-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #bbb; margin-bottom: 0.9rem; }
 
-  .other-input{
-    margin-top:8px;
-    width:100%;
-    font-family:var(--sans);
-    font-size:13px;
-    padding:8px 10px;
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    background:var(--surface);
-    color:var(--text);
-    display:none;
-  }
-  .other-input.show{ display:block; }
-  .other-input:focus{ outline:2px solid var(--accent); outline-offset:1px; border-color:transparent; }
+.et-trend-wrap { margin-bottom: 2rem; }
+.et-trend-empty { font-size: 12px; color: #ccc; font-weight: 300; padding: 0.5rem 0; }
+.et-trend-chart { display: flex; align-items: flex-end; gap: 10px; height: 90px; padding-top: 6px; }
+.et-trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+.et-trend-bar { width: 100%; max-width: 26px; border-radius: 5px 5px 2px 2px; background: #ddd; min-height: 3px; transition: height 0.3s; }
+.et-trend-val { font-size: 9px; color: #bbb; }
+.et-trend-lbl { font-size: 9px; color: #ccc; margin-top: 4px; }
+.et-trend-col.current .et-trend-lbl { color: #5f6b72; font-weight: 500; }
 
-  /* ---------- activity cards (step 3) ---------- */
+.et-pattern { background: #FBF7EF; border-radius: 10px; padding: 0.9rem 1rem; margin-bottom: 2rem; }
+.et-pattern p { font-size: 12px; color: #8a7a55; line-height: 1.6; font-weight: 300; }
+.et-pattern strong { color: #B8863E; font-weight: 500; }
 
-  #activitiesArea{ display:flex; flex-direction:column; gap:12px; }
+.et-streak-wrap { margin-bottom: 2rem; }
+.et-streak-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 0.9rem; }
+.et-streak-item { background: #f9f9f9; border-radius: 10px; padding: 0.875rem 0.75rem; text-align: center; }
+.et-streak-val { font-family: 'Alegreya', serif; font-size: 24px; font-weight: 600; color: #111; line-height: 1; }
+.et-streak-lbl { font-size: 10px; color: #999; margin-top: 4px; }
 
-  .acard{
-    background:var(--surface);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:18px 20px;
-    animation:rise .2s ease both;
-  }
-  @keyframes rise{ from{ opacity:0; transform:translateY(4px);} to{ opacity:1; transform:translateY(0);} }
+.et-daykit-hint { font-size: 11px; color: #bbb; font-weight: 300; line-height: 1.6; margin-bottom: 10px; }
+.et-team-notice { background: #f5f2ec; border-left: 3px solid #8a7a6a; border-radius: 0 10px 10px 0; padding: 12px 16px; margin-bottom: 1.5rem; }
+.et-team-notice b { font-size: 12.5px; color: #5a4f42; font-weight: 500; }
+.et-team-notice p { font-size: 11.5px; color: #8a7a6a; font-weight: 300; line-height: 1.55; margin-top: 5px; }
+.et-footer { font-size: 11px; color: #ccc; font-weight: 300; letter-spacing: 0.05em; }
 
-  .acard-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
-  .acard-head .badge{
-    width:24px; height:24px; border-radius:6px;
-    background:var(--accent); color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    font-size:11px; font-weight:700; font-family:var(--mono);
-    flex-shrink:0;
-  }
-  .acard-head .name{ font-size:14.5px; font-weight:650; }
+.reset-confirm { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none; align-items: center; justify-content: center; z-index: 200; }
+.reset-confirm.visible { display: flex; }
+.reset-dialog { background: #fff; border-radius: 14px; padding: 2rem; max-width: 320px; width: 90%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.reset-dialog h3 { font-family: 'Alegreya', serif; font-size: 22px; font-weight: 400; color: #111; margin-bottom: 8px; }
+.reset-dialog p { font-size: 13px; color: #aaa; font-weight: 300; line-height: 1.6; margin-bottom: 1.5rem; }
+.reset-dialog-btns { display: flex; gap: 10px; justify-content: center; }
+.btn-cancel { background: none; border: 0.5px solid #e0e0e0; border-radius: 8px; padding: 10px 20px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #888; cursor: pointer; }
+.btn-cancel:hover { border-color: #bbb; }
+.btn-confirm-reset { background: #D62839; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #fff; cursor: pointer; font-weight: 500; }
+.btn-confirm-reset:hover { opacity: 0.85; }
 
-  .field{ margin-bottom:14px; }
-  .field:last-child{ margin-bottom:0; }
-  .field-q{ font-size:12.5px; color:var(--text-secondary); margin-bottom:7px; }
-
-  .options{ display:flex; flex-wrap:wrap; gap:6px; }
-  .opt{ position:relative; }
-  .opt input{ position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; margin:0; }
-  .opt label{
-    display:inline-flex; align-items:center; padding:6px 11px;
-    border:1px solid var(--border); border-radius:100px;
-    font-size:12.5px; color:var(--text-secondary); background:var(--surface);
-    cursor:pointer; transition:all .12s ease; user-select:none;
-  }
-  .opt input:checked + label{ background:var(--accent); border-color:var(--accent); color:#fff; }
-  .opt input:focus-visible + label{ outline:2px solid var(--accent); outline-offset:2px; }
-
-  .obstacle-block{
-    margin-top:16px;
-    padding-top:16px;
-    border-top:1px solid var(--border);
-  }
-  .obstacle-label{
-    font-size:11.5px; font-weight:650; letter-spacing:.04em; text-transform:uppercase;
-    color:var(--text-tertiary); margin-bottom:12px;
-  }
-
-  .solution-input{
-    margin-top:10px;
-    width:100%;
-    font-family:var(--sans);
-    font-size:13px;
-    padding:9px 11px;
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    background:var(--surface-alt);
-    color:var(--text);
-    resize:vertical;
-    min-height:38px;
-  }
-  .solution-input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
-  .solution-arrow{ font-family:var(--mono); font-size:12px; color:var(--text-tertiary); margin:8px 0 0; }
-
-  /* ---------- summary (Мой план) ---------- */
-
-  .summary-card{
-    background:var(--accent);
-    color:#fff;
-    border-radius:var(--radius);
-    padding:22px 24px;
-    position:relative;
-    overflow:hidden;
-  }
-  .summary-card::before{
-    content:"";
-    position:absolute; inset:0;
-    background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
-    background-size:100% 22px;
-    pointer-events:none;
-  }
-  .summary-title{ font-size:15px; font-weight:700; letter-spacing:-.01em; margin-bottom:16px; position:relative; }
-  .summary-empty{ font-size:13px; color:rgba(255,255,255,.62); position:relative; padding:6px 0 2px; }
-
-  .summary-group{ margin-bottom:16px; position:relative; }
-  .summary-group:last-child{ margin-bottom:0; }
-  .summary-group .g-label{
-    font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em;
-    color:rgba(255,255,255,.5); margin-bottom:8px;
-  }
-  .summary-group .g-line{
-    display:flex; gap:8px; font-size:13px; padding:3px 0; color:rgba(255,255,255,.95);
-  }
-  .summary-group .g-line .dot{ color:rgba(255,255,255,.5); flex-shrink:0; }
-  .summary-group .g-line .arrow{ color:rgba(255,255,255,.5); margin:0 2px; }
-
-  /* ---------- save ---------- */
-
-  .save-area{ display:flex; align-items:center; gap:14px; margin-top:24px; }
-  button.primary{
-    background:var(--accent); color:#fff; border:none;
-    border-radius:var(--radius-sm); padding:11px 20px;
-    font-size:13.5px; font-weight:650; font-family:var(--sans);
-    cursor:pointer; transition:opacity .12s ease;
-  }
-  button.primary:hover{ opacity:.88; }
-  button.primary:disabled{ opacity:.4; cursor:not-allowed; }
-  button.primary:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
-  .save-status{ font-size:12.5px; color:var(--text-tertiary); font-family:var(--mono); }
-  .save-status.show{ color:var(--accent); }
-
-  /* ---------- next ---------- */
-
-  .next{
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
-    padding:16px 20px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
-  }
-  .next .l{ font-size:11.5px; color:var(--text-tertiary); margin-bottom:3px; }
-  .next .t{ font-size:14.5px; font-weight:650; color:var(--text); }
-  .next .tag{
-    font-size:10.5px; font-family:var(--mono); color:var(--text-tertiary);
-    border:1px solid var(--border); padding:3px 8px; border-radius:100px; white-space:nowrap;
-  }
-
-  /* ---------- footer ---------- */
-
-  footer{
-    margin-top:56px; padding-top:20px; border-top:1px solid var(--border);
-    font-size:12px; color:var(--text-tertiary); line-height:1.6;
-  }
-  footer .by{ color:var(--text-secondary); margin-bottom:8px; }
-
-  [hidden]{ display:none !important; }
-
-  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
-
-  @media (max-width:520px){
-    body{ padding:36px 16px 80px; }
-    .tile-grid{ grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); }
-  }
+.remind-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.3); display: none; align-items: center; justify-content: center; z-index: 200; }
+.remind-modal.visible { display: flex; }
+.remind-dialog { background: #fff; border-radius: 14px; padding: 2rem; max-width: 360px; width: 90%; text-align: left; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+.remind-dialog h3 { font-family: 'Alegreya', serif; font-size: 22px; font-weight: 400; color: #111; margin-bottom: 10px; }
+.remind-dialog p { font-size: 13px; color: #999; font-weight: 300; line-height: 1.6; margin-bottom: 1rem; }
+.remind-times { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
+.remind-time-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #555; }
+.remind-time-row input[type="time"] { border: 0.5px solid #e0e0e0; border-radius: 6px; padding: 5px 8px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #333; }
+.remind-dialog-btns { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-primary { background: #5f6b72; border: none; border-radius: 8px; padding: 10px 20px; font-family: 'Alegreya Sans', sans-serif; font-size: 13px; color: #fff; cursor: pointer; font-weight: 500; }
+.btn-primary:hover { background: #515b61; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="crumbs">
-    Operational Wellbeing <span class="sep">/</span> Механизм: <span class="current">Энергия</span>
-  </div>
-  <hr class="hr">
+<div class="et-wrap">
 
-  <div class="titlebar">
-    <h1>План восстановления энергии</h1>
-    <span class="version">v1.0</span>
-  </div>
-
-  <p class="intro">Энергия редко заканчивается внезапно. Обычно она постепенно расходуется быстрее, чем успевает восстанавливаться. Этот инструмент поможет определить, какие изменения стоит встроить в рабочий день, чтобы поддерживать энергию регулярно, а не только после перегрузки.</p>
-
-  <!-- STEP 1 -->
-  <section>
-    <div class="step-label"><span class="n">1</span>Потери энергии</div>
-    <h2>Где сейчас сильнее всего теряется энергия?</h2>
-    <p class="step-sub">Выберите не более трёх пунктов.</p>
-    <div class="tile-grid" id="drainGrid"></div>
-    <input type="text" class="other-input" id="drainOtherInput" placeholder="Опишите свой вариант">
-    <p class="step-hint" id="drainHint"></p>
-  </section>
-
-  <!-- STEP 2 -->
-  <section>
-    <div class="step-label"><span class="n">2</span>Восстановление</div>
-    <h2>Что обычно помогает восстановиться?</h2>
-    <p class="step-sub">Можно выбрать несколько вариантов.</p>
-    <div class="tile-grid" id="helperGrid"></div>
-    <input type="text" class="other-input" id="helperOtherInput" placeholder="Опишите свой вариант">
-  </section>
-
-  <!-- STEP 3 -->
-  <section id="activitiesSection" hidden>
-    <div class="step-label"><span class="n">3</span>Встраивание</div>
-    <h2>Что из этого реально можно встроить в рабочую неделю?</h2>
-    <p class="step-sub">Для каждого способа — своя карточка. Ниже сразу укажите, что может помешать.</p>
-    <div id="activitiesArea"></div>
-  </section>
-
-  <!-- RESULT -->
-  <section>
-    <div id="summaryWrap"></div>
-  </section>
-
-  <!-- SAVE -->
-  <section>
-    <div class="save-area">
-      <button class="primary" id="saveBtn" disabled>Сохранить план</button>
-      <span class="save-status" id="saveStatus"></span>
+  <div class="et-top-bar">
+    <div class="et-header">
+      <div class="et-eyebrow">Еженедельный журнал</div>
+      <div class="et-title"><em>Трекер</em> энергии</div>
+      <div class="et-subtitle">Нажми «Как сейчас?» в моменте — или отметь клетку в таблице задним числом</div>
     </div>
-  </section>
-
-  <!-- NEXT -->
-  <section>
-    <div class="next">
-      <div>
-        <div class="l">Следующий шаг</div>
-        <div class="t">Карта энергии</div>
+    <div class="et-top-actions">
+      <div class="et-save-indicator" id="saveIndicator">
+        <div class="save-dot"></div>
+        <span id="saveText">данные сохранены</span>
       </div>
-      <span class="tag">скоро</span>
+      <button class="et-reset-btn" id="resetBtn">Сбросить трекер</button>
     </div>
-  </section>
+  </div>
 
-  <footer>
-    <div class="by">Part of the Operational Wellbeing Framework — by @ekaworkwise</div>
-    Этот инструмент помогает наблюдать и проектировать рабочие привычки. Он не является медицинской диагностикой, психологической оценкой или профессиональной консультацией.
-  </footer>
+  <div class="et-now-block">
+    <button class="et-now-btn" id="nowBtn">
+      <span class="et-now-left">
+        <span class="et-now-title">Как сейчас?</span>
+        <span class="et-now-sub" id="nowSub">—</span>
+      </span>
+      <span class="et-now-arrow">→</span>
+    </button>
+    <div class="et-remind-row">
+      <button class="et-remind-btn" id="remindBtn">Настроить напоминания</button>
+    </div>
+  </div>
 
+  <div class="et-week-nav">
+    <button class="et-week-btn" id="prevWeek">‹</button>
+    <span class="et-week-label" id="weekLabel">—</span>
+    <button class="et-week-btn" id="nextWeek">›</button>
+  </div>
+
+  <div class="et-legend">
+    <div class="et-legend-item"><div class="et-legend-dot" data-v="5"></div> Пик — максимум сил</div>
+    <div class="et-legend-item"><div class="et-legend-dot" data-v="4"></div> Хорошо — в потоке</div>
+    <div class="et-legend-item"><div class="et-legend-dot" data-v="3"></div> Нормально — небольшой спад</div>
+    <div class="et-legend-item"><div class="et-legend-dot" data-v="2"></div> Низко — тяжело</div>
+    <div class="et-legend-item"><div class="et-legend-dot" data-v="1"></div> Истощение — нужен отдых</div>
+  </div>
+
+  <div class="et-table-wrap">
+    <table class="et-table" id="mainTable">
+      <thead><tr id="headRow"><th>Период</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="et-divider"></div>
+
+  <div class="et-stats">
+    <div class="et-stat"><div class="et-stat-label">Пиковый период</div><div class="et-stat-val" id="statPeak" style="font-size:16px;padding-top:4px">—</div></div>
+    <div class="et-stat"><div class="et-stat-label">Средняя</div><div class="et-stat-val" id="statAvg">—<span>/5</span></div></div>
+    <div class="et-stat"><div class="et-stat-label">Лучший день</div><div class="et-stat-val" id="statDay" style="font-size:18px;padding-top:4px">—</div></div>
+    <div class="et-stat"><div class="et-stat-label">Записей</div><div class="et-stat-val" id="statCount">0</div></div>
+  </div>
+
+  <div class="et-insight" id="insightBox" style="display:none">
+    <p id="insightText"></p>
+  </div>
+
+  <div class="et-trend-wrap">
+    <div class="et-section-label">Тренд по неделям</div>
+    <div id="trendChart"></div>
+  </div>
+
+  <div class="et-pattern" id="patternBox" style="display:none">
+    <p id="patternText"></p>
+  </div>
+
+  <div class="et-streak-wrap" id="streakCard" style="display:none"></div>
+
+  <div class="et-daykit-hint">Эти данные уже используются для правила по энергии в Daykit — там же они собираются в общий Workday Score. <!-- TODO: замените на реальную ссылку на Daykit, когда домен будет готов --></div>
+
+  <div class="et-footer">данные хранятся в браузере на этом устройстве · без регистрации · <a href="#" id="exportCsv" style="color:#5f6b72;">скачать все данные (.csv)</a></div>
+</div>
+
+<div class="et-picker" id="picker">
+  <div class="et-picker-context" id="pickerContext">—</div>
+  <div class="et-picker-row">
+    <div class="et-picker-dot" data-v="5"></div>
+    <div class="et-picker-dot" data-v="4"></div>
+    <div class="et-picker-dot" data-v="3"></div>
+    <div class="et-picker-dot" data-v="2"></div>
+    <div class="et-picker-dot" data-v="1"></div>
+    <div class="et-picker-dot" data-v="0"></div>
+  </div>
+  <div class="et-picker-labels" id="pickerLabels"></div>
+  <input type="text" class="et-picker-note" id="pickerNote" placeholder="+ заметка к этому моменту">
+</div>
+
+<div class="reset-confirm" id="resetConfirm">
+  <div class="reset-dialog">
+    <h3>Сбросить всё?</h3>
+    <p>Все записи за все недели будут удалены. Это действие нельзя отменить.</p>
+    <div class="reset-dialog-btns">
+      <button class="btn-cancel" id="cancelReset">Отмена</button>
+      <button class="btn-confirm-reset" id="confirmReset">Сбросить</button>
+    </div>
+  </div>
+</div>
+
+<div class="remind-modal" id="remindModal">
+  <div class="remind-dialog">
+    <h3>Напоминания</h3>
+    <p>Скачайте файл календаря с повторяющимся напоминанием на каждый период — добавьте его в календарь на телефоне, и он будет присылать уведомления сам, даже если эта страница закрыта.</p>
+    <div class="remind-times" id="remindTimes"></div>
+    <div class="remind-dialog-btns">
+      <button class="btn-cancel" id="cancelRemind">Отмена</button>
+      <button class="btn-primary" id="downloadIcs">Скачать .ics</button>
+    </div>
+  </div>
 </div>
 
 <script>
-(function(){
-  "use strict";
-
-  var STORAGE_KEY = "operational_wellbeing_energy_recovery_plan";
-  var MAX_DRAINS = 3;
-
-  var DRAINS = {
-    after_meetings:     "После встреч",
-    midday:              "К середине дня",
-    evening:             "К вечеру",
-    after_hard_tasks:   "После сложных задач",
-    context_switching:  "Из-за постоянных переключений",
-    messaging:           "Из-за переписки",
-    after_socializing:  "После общения с людьми",
-    no_pauses:           "Из-за отсутствия пауз",
-    other:               "Другое"
-  };
-
-  var HELPERS = {
-    walk:            "Прогулка",
-    movement:        "Движение",
-    stretch:         "Короткая разминка",
-    silence:         "Несколько минут тишины",
-    task_switch:     "Переключение на другую задачу",
-    talk_colleague:  "Разговор с коллегой",
-    coffee:          "Кофе",
-    music:           "Музыка",
-    food:            "Еда",
-    sleep:           "Сон",
-    other:           "Другое"
-  };
-
-  var WHEN = {
-    before_work:   "До работы",
-    after_meeting: "После встречи",
-    lunch:         "Во время обеда",
-    end_of_day:    "После окончания рабочего дня"
-  };
-
-  var DURATION = { "5":"5 минут", "10":"10 минут", "15":"15 минут", "20":"20+ минут" };
-
-  var FREQ = { "1":"1 раз в неделю", "2":"2 раза в неделю", "3":"3 раза в неделю", daily:"Каждый рабочий день" };
-
-  var OBSTACLES = {
-    forget:         "Забываю",
-    no_time:        "Нет времени",
-    many_meetings:  "Много встреч",
-    lazy:           "Лень выходить",
-    other:          "Другое"
-  };
-
-  function suggestionFor(obstacle, activityLabel){
-    switch(obstacle){
-      case "forget": return "Поставить короткое напоминание на «" + activityLabel + "»";
-      case "no_time": return "Совместить «" + activityLabel + "» с рабочим звонком или короткой паузой";
-      case "many_meetings": return "Вставлять «" + activityLabel + "» сразу после самой длинной встречи";
-      case "lazy": return "Начинать с минимальной версии — даже пара минут «" + activityLabel + "» считаются";
-      default: return "";
-    }
-  }
-
-  var state = {
-    drains: [],
-    drainOther: "",
-    helpers: [],
-    helperOther: "",
-    activities: {} // key -> { when, duration, frequency, obstacle, solution }
-  };
-
-  // ---------- persistence ----------
-
-  function loadSaved(){
-    try{
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return null;
-      return JSON.parse(raw);
-    }catch(e){ return null; }
-  }
-
-  var lastSavedAt = null;
-
-  function restoreDraft(){
-    var raw;
-    try{ raw = localStorage.getItem(STORAGE_KEY + "__draft"); }catch(e){ raw = null; }
-    if(!raw) return;
-    try{
-      var draft = JSON.parse(raw);
-      state.drains = draft.drains || [];
-      state.drainOther = draft.drainOther || "";
-      state.helpers = draft.helpers || [];
-      state.helperOther = draft.helperOther || "";
-      state.activities = draft.activities || {};
-    }catch(e){}
-    var saved = loadSaved();
-    if(saved && saved.date) lastSavedAt = saved.date;
-  }
-
-  function saveDraft(){
-    localStorage.setItem(STORAGE_KEY + "__draft", JSON.stringify(state));
-  }
-
-  function formatDate(d){
-    var pad = function(n){ return String(n).padStart(2,"0"); };
-    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
-  }
-
-  function persist(){
-    var date = formatDate(new Date());
-    var activeHelpers = state.helpers.filter(configComplete);
-
-    var recoveryWindows = [];
-    activeHelpers.forEach(function(key){
-      var w = WHEN[state.activities[key].when];
-      if(w && recoveryWindows.indexOf(w) === -1) recoveryWindows.push(w);
-    });
-
-    var activities = activeHelpers.map(function(key){
-      var cfg = state.activities[key];
-      return {
-        activity: helperLabel(key),
-        duration: parseInt(cfg.duration, 10),
-        frequency: FREQ[cfg.frequency]
-      };
-    });
-
-    var obstacles = activeHelpers
-      .filter(function(key){ var c = state.activities[key]; return c.obstacle && c.solution && c.solution.trim(); })
-      .map(function(key){
-        var c = state.activities[key];
-        return { problem: OBSTACLES[c.obstacle], solution: c.solution.trim() };
-      });
-
-    var payload = {
-      tool: "energy_recovery_plan",
-      mechanism: "energy",
-      date: date,
-      recovery_plan: {
-        recovery_windows: recoveryWindows,
-        activities: activities,
-        obstacles: obstacles
-      },
-      dashboard: {
-        mechanism: "energy",
-        configured: true,
-        last_updated: date,
-        next_tool: "daily_checkin"
-      }
-    };
-
-    lastSavedAt = date;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    saveDraft();
-  }
-
-  // ---------- helpers ----------
-
-  function helperLabel(key){
-    if(key === "other") return state.helperOther.trim() || "Другое";
-    return HELPERS[key];
-  }
-
-  function configComplete(key){
-    var c = state.activities[key];
-    return !!(c && c.when && c.duration && c.frequency);
-  }
-
-  // ---------- step 1: drains ----------
-
-  function renderDrainGrid(){
-    var grid = document.getElementById("drainGrid");
-    grid.innerHTML = "";
-    var atMax = state.drains.length >= MAX_DRAINS;
-
-    Object.keys(DRAINS).forEach(function(key){
-      var tile = document.createElement("div");
-      tile.className = "tile";
-
-      var input = document.createElement("input");
-      input.type = "checkbox";
-      input.id = "drain_" + key;
-      var checked = state.drains.indexOf(key) !== -1;
-      input.checked = checked;
-      input.disabled = atMax && !checked;
-
-      input.addEventListener("change", function(){
-        if(input.checked){
-          if(state.drains.length < MAX_DRAINS) state.drains.push(key);
-          else { input.checked = false; return; }
-        } else {
-          state.drains = state.drains.filter(function(k){ return k !== key; });
-        }
-        renderDrainGrid();
-        renderSummary();
-      });
-
-      var label = document.createElement("label");
-      label.setAttribute("for", input.id);
-      var mark = document.createElement("span");
-      mark.className = "mark";
-      mark.textContent = "✓";
-      label.appendChild(mark);
-      label.appendChild(document.createTextNode(DRAINS[key]));
-
-      tile.appendChild(input);
-      tile.appendChild(label);
-      grid.appendChild(tile);
-    });
-
-    var otherInput = document.getElementById("drainOtherInput");
-    otherInput.classList.toggle("show", state.drains.indexOf("other") !== -1);
-    otherInput.value = state.drainOther;
-
-    var hint = document.getElementById("drainHint");
-    hint.textContent = "Выбрано " + state.drains.length + " из " + MAX_DRAINS;
-  }
-
-  document.getElementById("drainOtherInput").addEventListener("input", function(e){
-    state.drainOther = e.target.value;
-    saveDraft();
-  });
-
-  // ---------- step 2: helpers ----------
-
-  function renderHelperGrid(){
-    var grid = document.getElementById("helperGrid");
-    grid.innerHTML = "";
-
-    Object.keys(HELPERS).forEach(function(key){
-      var tile = document.createElement("div");
-      tile.className = "tile";
-
-      var input = document.createElement("input");
-      input.type = "checkbox";
-      input.id = "helper_" + key;
-      input.checked = state.helpers.indexOf(key) !== -1;
-
-      input.addEventListener("change", function(){
-        if(input.checked){
-          state.helpers.push(key);
-          if(!state.activities[key]) state.activities[key] = { when:null, duration:null, frequency:null, obstacle:null, solution:"" };
-        } else {
-          state.helpers = state.helpers.filter(function(k){ return k !== key; });
-          delete state.activities[key];
-        }
-        renderHelperGrid();
-        renderActivities();
-        renderSummary();
-      });
-
-      var label = document.createElement("label");
-      label.setAttribute("for", input.id);
-      var mark = document.createElement("span");
-      mark.className = "mark";
-      mark.textContent = "✓";
-      label.appendChild(mark);
-      label.appendChild(document.createTextNode(HELPERS[key]));
-
-      tile.appendChild(input);
-      tile.appendChild(label);
-      grid.appendChild(tile);
-    });
-
-    var otherInput = document.getElementById("helperOtherInput");
-    otherInput.classList.toggle("show", state.helpers.indexOf("other") !== -1);
-    otherInput.value = state.helperOther;
-  }
-
-  document.getElementById("helperOtherInput").addEventListener("input", function(e){
-    state.helperOther = e.target.value;
-    renderActivities();
-    renderSummary();
-    saveDraft();
-  });
-
-  // ---------- step 3: activity cards ----------
-
-  function pillGroup(cfg, field, dict, questionText, onChange){
-    var wrap = document.createElement("div");
-    wrap.className = "field";
-    var q = document.createElement("div");
-    q.className = "field-q";
-    q.textContent = questionText;
-    wrap.appendChild(q);
-    var row = document.createElement("div");
-    row.className = "options";
-    Object.keys(dict).forEach(function(key){
-      var opt = document.createElement("span");
-      opt.className = "opt";
-      var input = document.createElement("input");
-      input.type = "radio";
-      input.name = field + "_" + Math.random().toString(36).slice(2);
-      var inputId = "f_" + field + "_" + key + "_" + Math.random().toString(36).slice(2);
-      input.id = inputId;
-      input.checked = cfg[field] === key;
-      input.addEventListener("change", function(){
-        cfg[field] = key;
-        onChange();
-      });
-      var label = document.createElement("label");
-      label.setAttribute("for", inputId);
-      label.textContent = dict[key];
-      opt.appendChild(input);
-      opt.appendChild(label);
-      row.appendChild(opt);
-    });
-    wrap.appendChild(row);
-    return wrap;
-  }
-
-  function buildActivityCard(key){
-    var cfg = state.activities[key];
-    var label = helperLabel(key);
-
-    var card = document.createElement("div");
-    card.className = "acard";
-
-    var head = document.createElement("div");
-    head.className = "acard-head";
-    var badge = document.createElement("span");
-    badge.className = "badge";
-    badge.textContent = label.charAt(0).toUpperCase();
-    var name = document.createElement("span");
-    name.className = "name";
-    name.textContent = label;
-    head.appendChild(badge);
-    head.appendChild(name);
-    card.appendChild(head);
-
-    var refresh = function(){ renderSummary(); saveDraft(); };
-
-    card.appendChild(pillGroup(cfg, "when", WHEN, "Когда это проще всего сделать?", refresh));
-    card.appendChild(pillGroup(cfg, "duration", DURATION, "Сколько времени потребуется?", refresh));
-    card.appendChild(pillGroup(cfg, "frequency", FREQ, "Сколько раз в неделю это реально?", refresh));
-
-    var obstacleBlock = document.createElement("div");
-    obstacleBlock.className = "obstacle-block";
-    var obLabel = document.createElement("div");
-    obLabel.className = "obstacle-label";
-    obLabel.textContent = "Что может помешать";
-    obstacleBlock.appendChild(obLabel);
-
-    obstacleBlock.appendChild(pillGroup(cfg, "obstacle", OBSTACLES, "Что чаще всего мешает?", function(){
-      if(!cfg.solution || !cfg.solution.trim()){
-        cfg.solution = suggestionFor(cfg.obstacle, label);
-        renderActivities();
-      }
-      refresh();
-    }));
-
-    var arrow = document.createElement("div");
-    arrow.className = "solution-arrow";
-    arrow.textContent = "↓ способ обхода";
-    obstacleBlock.appendChild(arrow);
-
-    var solution = document.createElement("textarea");
-    solution.className = "solution-input";
-    solution.rows = 2;
-    solution.placeholder = "Например: выйду на пять минут сразу после обеда";
-    solution.value = cfg.solution || "";
-    solution.addEventListener("input", function(){
-      cfg.solution = solution.value;
-      refresh();
-    });
-    obstacleBlock.appendChild(solution);
-
-    card.appendChild(obstacleBlock);
-    return card;
-  }
-
-  function renderActivities(){
-    var section = document.getElementById("activitiesSection");
-    var area = document.getElementById("activitiesArea");
-    if(state.helpers.length === 0){
-      section.hidden = true;
-      area.innerHTML = "";
-      return;
-    }
-    section.hidden = false;
-    area.innerHTML = "";
-    state.helpers.forEach(function(key){
-      area.appendChild(buildActivityCard(key));
-    });
-  }
-
-  // ---------- summary ----------
-
-  function escapeHtml(str){
-    var div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  function renderSummary(){
-    var wrap = document.getElementById("summaryWrap");
-    var activeHelpers = state.helpers.filter(configComplete);
-
-    var html = '<div class="summary-card"><div class="summary-title">Мой план восстановления энергии</div>';
-
-    if(activeHelpers.length === 0){
-      html += '<div class="summary-empty">Пока пусто — выберите способы восстановления и настройте карточки выше, и здесь появится ваш план.</div></div>';
-      wrap.innerHTML = html;
-      document.getElementById("saveBtn").disabled = true;
-      saveDraft();
-      return;
-    }
-
-    var windows = [];
-    activeHelpers.forEach(function(key){
-      var w = WHEN[state.activities[key].when];
-      if(windows.indexOf(w) === -1) windows.push(w);
-    });
-
-    html += '<div class="summary-group"><div class="g-label">Когда восстанавливаться</div>';
-    windows.forEach(function(w){
-      html += '<div class="g-line"><span class="dot">·</span><span>' + escapeHtml(w) + '</span></div>';
-    });
-    html += '</div>';
-
-    html += '<div class="summary-group"><div class="g-label">Что делать</div>';
-    activeHelpers.forEach(function(key){
-      var cfg = state.activities[key];
-      html += '<div class="g-line"><span class="dot">·</span><span>' + escapeHtml(helperLabel(key)) + ' — ' + DURATION[cfg.duration] + '</span></div>';
-    });
-    html += '</div>';
-
-    html += '<div class="summary-group"><div class="g-label">Как часто</div>';
-    activeHelpers.forEach(function(key){
-      var cfg = state.activities[key];
-      html += '<div class="g-line"><span class="dot">·</span><span>' + escapeHtml(helperLabel(key)) + ' — ' + FREQ[cfg.frequency] + '</span></div>';
-    });
-    html += '</div>';
-
-    var withObstacle = activeHelpers.filter(function(key){
-      var c = state.activities[key];
-      return c.obstacle && c.solution && c.solution.trim();
-    });
-    if(withObstacle.length){
-      html += '<div class="summary-group"><div class="g-label">Что может помешать</div>';
-      withObstacle.forEach(function(key){
-        var c = state.activities[key];
-        html += '<div class="g-line"><span>' + escapeHtml(OBSTACLES[c.obstacle]) + '</span><span class="arrow">→</span><span>' + escapeHtml(c.solution.trim()) + '</span></div>';
-      });
-      html += '</div>';
-    }
-
-    html += '</div>';
-    wrap.innerHTML = html;
-
-    document.getElementById("saveBtn").disabled = false;
-    saveDraft();
-  }
-
-  // ---------- save ----------
-
-  function initSave(){
-    document.getElementById("saveBtn").addEventListener("click", function(){
-      persist();
-      var status = document.getElementById("saveStatus");
-      status.textContent = "Сохранено · " + lastSavedAt;
-      status.classList.add("show");
-    });
-  }
-
-  // ---------- init ----------
-
-  restoreDraft();
-  renderDrainGrid();
-  renderHelperGrid();
-  renderActivities();
-  renderSummary();
-  initSave();
-
-  if(lastSavedAt){
-    var status = document.getElementById("saveStatus");
-    status.textContent = "Сохранено · " + lastSavedAt;
-    status.classList.add("show");
-  }
-
+const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const LS_KEY = 'energy_tracker_v2';
+
+/* ============================================================
+   ANALYTICS + TEAM CONTEXT — same endpoint, same event shape, same
+   session_id key as Daykit and the Audit, so all three tools land
+   in one funnel and can be joined by session_id same-origin. This
+   is the actual groundwork for a future Team Report: the aggregator
+   doesn't need a new sync layer, it can read the same sheet these
+   events already write to, filtered by org/team. No backend change
+   needed here to "turn on" B2B later — just build the report reader.
+   ============================================================ */
+const ANALYTICS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxE9GmUz3GA1qnylbCQJ8sWTo3ckOoC7TdsNQh5J9Pn_ACVX7UzWdC9EcQNCMO85Znb/exec";
+const ANALYTICS_VERSION = "wd_energy_tracker_v1";
+const ANALYTICS_SESSION_KEY = "wd_session_id_v1";
+function generateUUID(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16); });
+}
+function getAnalyticsSessionId(){
+  try { let id = localStorage.getItem(ANALYTICS_SESSION_KEY); if (!id) { id = generateUUID(); localStorage.setItem(ANALYTICS_SESSION_KEY, id); } return id; }
+  catch(e) { return generateUUID(); }
+}
+const TEAM_CONTEXT = (function(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const org = (params.get('org') || '').trim(), team = (params.get('team') || '').trim();
+    return { org: org || null, team: team || null };
+  } catch(e) { return { org: null, team: null }; }
 })();
+function sendAnalyticsEvent(name, payload){
+  if (!ANALYTICS_ENDPOINT) return;
+  try {
+    fetch(ANALYTICS_ENDPOINT, {
+      method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ version: ANALYTICS_VERSION, event: name, ts: Date.now(), session_id: getAnalyticsSessionId(), org: TEAM_CONTEXT.org, team: TEAM_CONTEXT.team, payload: payload || {} })
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
+// Five periods instead of 16 hourly slots — tracking every single hour asked for more
+// discipline than most people can keep up daily; a handful of natural checkpoints
+// through the working day are much easier to actually stick to, without losing the
+// "when in the day" signal entirely.
+const PERIODS = [
+  { key:'morning',   label:'Утро',            range:'8:00–11:00',  startH:8,  endH:11, remindH:9,  remindM:30 },
+  { key:'midday',    label:'Полдень',         range:'11:00–14:00', startH:11, endH:14, remindH:12, remindM:30 },
+  { key:'afternoon', label:'После обеда',     range:'14:00–17:00', startH:14, endH:17, remindH:15, remindM:30 },
+  { key:'evening',   label:'Вечер',           range:'17:00–20:00', startH:17, endH:20, remindH:18, remindM:30 },
+  { key:'late',      label:'Поздний вечер',   range:'20:00–23:00', startH:20, endH:23, remindH:21, remindM:0  }
+];
+function periodIndexByKey(k){ return PERIODS.findIndex(p => p.key === k); }
+// getCurrentPeriodIndex now only covers the working day itself (8:00–23:00) — night
+// hours aren't a period to "track energy in", they're sleep, which has its own row
+// (see SLEEP_ROW below) instead of being forced into "поздний вечер".
+function getCurrentPeriodIndex(now){
+  now = now || new Date();
+  const h = now.getHours();
+  if (h >= 8 && h < 11) return 0;
+  if (h >= 11 && h < 14) return 1;
+  if (h >= 14 && h < 17) return 2;
+  if (h >= 17 && h < 20) return 3;
+  if (h >= 20 && h < 23) return 4;
+  return -1; // 23:00–7:59 — вне рабочего дня
+}
+
+// Sleep gets its own row instead of being squeezed into a "period" — it isn't a slice
+// of the working day, it's a whole-night rating that happens once and colours the day
+// that follows. Stored with the same key shape (weekKey_dayIdx_sleep) so it reuses all
+// the existing picker/note/save plumbing, but is explicitly excluded from every
+// energy-only calculation (updateStats/renderTrend/renderPattern/streaks) by simply
+// never appearing in PERIODS — those all key off periodIndexByKey().
+const SLEEP_ROW = { key:'sleep', label:'Сон', range:'прошлая ночь' };
+const SLEEP_LABELS = ['—','Не спал(а)','Плохо','Так себе','Хорошо','Отлично'];
+
+let weekOffset = 0;
+let activeKey = null;
+let activeCellEl = null;
+let activeMode = 'energy'; // 'energy' | 'sleep' — which picker labels/scale to show
+let saveTimer = null;
+const picker = document.getElementById('picker');
+const pickerNote = document.getElementById('pickerNote');
+const pickerContext = document.getElementById('pickerContext');
+const pickerLabelsEl = document.getElementById('pickerLabels');
+const saveIndicator = document.getElementById('saveIndicator');
+const saveText = document.getElementById('saveText');
+
+const ENERGY_LABELS = ['✕','Сил нет','Низко','Норм.','Хор.','Пик'];
+
+// --- localStorage helpers ---
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : { cells: {}, notes: {} };
+  } catch(e) { return { cells: {}, notes: {} }; }
+}
+function saveAll(state) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    showSaved();
+  } catch(e) { showSaveError(); }
+}
+function showSaveError(){
+  saveIndicator.className = 'et-save-indicator error';
+  saveText.textContent = 'не удалось сохранить — освободите память браузера';
+}
+let appState = loadAll();
+
+function showSaving() {
+  saveIndicator.className = 'et-save-indicator saving';
+  saveText.textContent = 'сохраняем...';
+}
+function showSaved() {
+  saveIndicator.className = 'et-save-indicator saved';
+  saveText.textContent = 'сохранено ✓';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveIndicator.className = 'et-save-indicator';
+    saveText.textContent = 'данные сохранены';
+  }, 2000);
+}
+function triggerSave() {
+  showSaving();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveAll(appState), 300);
+}
+
+// --- Week helpers ---
+function mondayOf(date, offset){
+  const d = new Date(date);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1 + (offset||0) * 7);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function getWeekKey(offset) { return mondayOf(new Date(), offset).toISOString().slice(0, 10); }
+function getWeekDates(offset) {
+  const dates = [];
+  const d = mondayOf(new Date(), offset);
+  for (let i = 0; i < 7; i++) { dates.push(new Date(d)); d.setDate(d.getDate() + 1); }
+  return dates;
+}
+function fmt(date) { return date.getDate() + ' ' + MONTHS[date.getMonth()]; }
+function cellKey(dayIdx, periodKey, offset) { return getWeekKey(offset != null ? offset : weekOffset) + '_' + dayIdx + '_' + periodKey; }
+function todayDayIndex(){ return (new Date().getDay() || 7) - 1; }
+
+// --- Build table ---
+function buildTable() {
+  const dates = getWeekDates(weekOffset);
+  const headRow = document.getElementById('headRow');
+  while (headRow.children.length > 1) headRow.removeChild(headRow.lastChild);
+  DAYS_SHORT.forEach((d, i) => {
+    const th = document.createElement('th');
+    th.innerHTML = '<span style="display:block">' + d + '</span><span style="font-size:10px;color:#ccc;font-weight:300;letter-spacing:0">' + fmt(dates[i]) + '</span>';
+    headRow.appendChild(th);
+  });
+
+  const isCurrentWeek = weekOffset === 0;
+  const curDayIdx = todayDayIndex();
+  const curPeriodIdx = getCurrentPeriodIndex();
+  const isEarlyMorning = new Date().getHours() < 8;
+
+  function buildRow(tbody, rowLabel, rowRange, rowKey, mode, isNowForDay){
+    const tr = document.createElement('tr');
+    if (mode === 'sleep') tr.className = 'et-sleep-row';
+    const tdTime = document.createElement('td');
+    tdTime.innerHTML = '<span class="et-period-name">' + rowLabel + '</span><span class="et-period-range">' + rowRange + '</span>';
+    tr.appendChild(tdTime);
+    DAYS_SHORT.forEach((_, di) => {
+      const td = document.createElement('td');
+      const key = cellKey(di, rowKey);
+      const val = appState.cells[key] || 0;
+      const hasNote = !!(appState.notes[key] && appState.notes[key].trim());
+      const wrap = document.createElement('div');
+      wrap.className = 'et-cell-wrap';
+      const cell = document.createElement('div');
+      cell.className = 'et-cell' + (val ? '' : ' empty') + (isCurrentWeek && di === curDayIdx && isNowForDay(di) ? ' is-now' : '');
+      if (val) cell.setAttribute('data-v', val);
+      cell.setAttribute('data-key', key);
+      cell.setAttribute('data-day', di);
+      cell.setAttribute('data-period', rowKey);
+      cell.setAttribute('data-mode', mode);
+      cell.addEventListener('click', () => openPickerForCell(cell));
+      wrap.appendChild(cell);
+      if (hasNote) {
+        const dot = document.createElement('div');
+        dot.className = 'et-note-dot';
+        wrap.appendChild(dot);
+      }
+      td.appendChild(wrap);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  }
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  PERIODS.forEach((period) => {
+    buildRow(tbody, period.label, period.range, period.key, 'energy', (di) => di === curDayIdx && curPeriodIdx === periodIndexByKey(period.key));
+  });
+  buildRow(tbody, SLEEP_ROW.label + ' 🌙', SLEEP_ROW.range, SLEEP_ROW.key, 'sleep', (di) => isEarlyMorning && !appState.cells[cellKey(di, 'sleep')]);
+
+  document.getElementById('weekLabel').textContent = fmt(dates[0]) + ' – ' + fmt(dates[6]);
+  updateNowButton();
+  updateStats();
+  renderTrend();
+  renderPattern();
+  renderStreakCard();
+}
+
+// --- "Как сейчас?" ---
+function updateNowButton(){
+  const now = new Date();
+  const pIdx = getCurrentPeriodIndex(now);
+  const sub = document.getElementById('nowSub');
+  if (pIdx === -1) {
+    sub.textContent = now.getHours() < 8
+      ? 'Доброе утро — отметьте, как спалось этой ночью'
+      : 'Рабочий день закончился — вернитесь с 8:00';
+  } else {
+    const period = PERIODS[pIdx];
+    sub.textContent = DAYS_SHORT[todayDayIndex()] + ' · ' + period.label + ' (' + period.range + ')';
+  }
+}
+document.getElementById('nowBtn').addEventListener('click', () => {
+  if (weekOffset !== 0) { weekOffset = 0; buildTable(); }
+  const di = todayDayIndex();
+  const pIdx = getCurrentPeriodIndex();
+  // Outside the working day (23:00–7:59): before 8am, offer last night's sleep instead
+  // of forcing an energy rating that doesn't apply yet; late at night, just say so.
+  const key = pIdx === -1
+    ? (new Date().getHours() < 8 ? cellKey(di, 'sleep', 0) : null)
+    : cellKey(di, PERIODS[pIdx].key, 0);
+  if (!key) return;
+  const cellEl = document.querySelector('.et-cell[data-key="' + key + '"]');
+  if (cellEl) {
+    if (typeof cellEl.scrollIntoView === 'function') cellEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => openPickerForCell(cellEl), 150);
+  }
+});
+
+// --- Picker ---
+function openPickerForCell(cell) {
+  if (activeCellEl) activeCellEl.classList.remove('selected');
+  activeCellEl = cell;
+  activeKey = cell.getAttribute('data-key');
+  activeMode = cell.getAttribute('data-mode') || 'energy';
+  cell.classList.add('selected');
+
+  const di = parseInt(cell.getAttribute('data-day'));
+  const pKey = cell.getAttribute('data-period');
+  const rowLabel = activeMode === 'sleep' ? SLEEP_ROW.label : PERIODS[periodIndexByKey(pKey)].label;
+  pickerContext.textContent = DAYS_SHORT[di] + ' · ' + rowLabel;
+  pickerNote.value = appState.notes[activeKey] || '';
+
+  const labels = activeMode === 'sleep' ? SLEEP_LABELS : ENERGY_LABELS;
+  pickerLabelsEl.innerHTML = [5,4,3,2,1,0].map(v => '<div class="et-picker-lbl">' + labels[v] + '</div>').join('');
+  picker.querySelectorAll('.et-picker-dot').forEach(dot => {
+    dot.setAttribute('title', labels[parseInt(dot.getAttribute('data-v'))]);
+  });
+
+  const rect = cell.getBoundingClientRect();
+  const pickerWidth = 240;
+  let left = rect.left - pickerWidth / 2 + rect.width / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - pickerWidth - 8));
+  picker.style.left = left + 'px';
+  picker.style.top = (rect.bottom + 8) + 'px';
+  picker.classList.add('visible');
+}
+function closePicker(){
+  picker.classList.remove('visible');
+  if (activeCellEl) activeCellEl.classList.remove('selected');
+  activeCellEl = null;
+  activeKey = null;
+}
+
+picker.querySelectorAll('.et-picker-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    if (!activeKey || !activeCellEl) return;
+    const v = parseInt(dot.getAttribute('data-v'));
+    const isFirstEnergyEntryEver = activeMode === 'energy' && v > 0 && !Object.keys(appState.cells).some(isEnergyKey);
+    if (v === 0) {
+      delete appState.cells[activeKey];
+      activeCellEl.className = activeCellEl.className.replace(/\bselected\b/, '').trim();
+      activeCellEl.classList.add('empty');
+      activeCellEl.removeAttribute('data-v');
+    } else {
+      appState.cells[activeKey] = v;
+      activeCellEl.classList.remove('empty');
+      activeCellEl.setAttribute('data-v', v);
+    }
+    if (isFirstEnergyEntryEver) sendAnalyticsEvent('first_energy_entry_saved', {});
+    triggerSave();
+    updateStats();
+    renderTrend();
+    renderPattern();
+    renderStreakCard();
+    closePicker();
+  });
+});
+pickerNote.addEventListener('input', () => {
+  if (!activeKey) return;
+  const v = pickerNote.value;
+  if (v.trim()) appState.notes[activeKey] = v; else delete appState.notes[activeKey];
+  triggerSave();
+});
+pickerNote.addEventListener('click', e => e.stopPropagation());
+
+document.addEventListener('click', e => {
+  if (!picker.contains(e.target) && (!activeCellEl || !activeCellEl.contains(e.target))) {
+    // refresh the note-dot on the cell we're leaving, then close
+    if (activeKey && activeCellEl) {
+      const wrap = activeCellEl.parentElement;
+      const existingDot = wrap.querySelector('.et-note-dot');
+      const hasNote = !!(appState.notes[activeKey] && appState.notes[activeKey].trim());
+      if (hasNote && !existingDot) { const d = document.createElement('div'); d.className = 'et-note-dot'; wrap.appendChild(d); }
+      if (!hasNote && existingDot) existingDot.remove();
+    }
+    closePicker();
+  }
+});
+
+// --- Stats (current week) ---
+function updateStats() {
+  const wk = getWeekKey(weekOffset);
+  const prefix = wk + '_';
+  const vals = Object.entries(appState.cells).filter(([k]) => k.startsWith(prefix) && isEnergyKey(k));
+  if (!vals.length) {
+    document.getElementById('statPeak').textContent = '—';
+    document.getElementById('statAvg').innerHTML = '—<span>/5</span>';
+    document.getElementById('statDay').textContent = '—';
+    document.getElementById('statCount').textContent = '0';
+    document.getElementById('insightBox').style.display = 'none';
+    return;
+  }
+  document.getElementById('statCount').textContent = vals.length;
+  const avg = (vals.reduce((a, [,v]) => a + v, 0) / vals.length).toFixed(1);
+  document.getElementById('statAvg').innerHTML = avg + '<span>/5</span>' + '<div class="et-stat-sub">' + avgLabel(parseFloat(avg)) + '</div>';
+
+  const periodSums = {}, periodCounts = {}, daySums = {}, dayCounts = {};
+  vals.forEach(([k, v]) => {
+    const parts = k.split('_'); const pKey = parts[2]; const di = parseInt(parts[1]);
+    periodSums[pKey] = (periodSums[pKey]||0)+v; periodCounts[pKey] = (periodCounts[pKey]||0)+1;
+    daySums[di] = (daySums[di]||0)+v; dayCounts[di] = (dayCounts[di]||0)+1;
+  });
+
+  let bestPeriod = '', bestPeriodAvg = 0;
+  Object.keys(periodSums).forEach(pKey => { const a = periodSums[pKey]/periodCounts[pKey]; if (a > bestPeriodAvg) { bestPeriodAvg = a; bestPeriod = pKey; } });
+  const bestPeriodObj = PERIODS[periodIndexByKey(bestPeriod)];
+  document.getElementById('statPeak').textContent = bestPeriodObj ? bestPeriodObj.label : '—';
+
+  let bestDay = -1, bestDayAvg = 0;
+  Object.keys(daySums).forEach(di => { const a = daySums[di]/dayCounts[di]; if (a > bestDayAvg) { bestDayAvg = a; bestDay = parseInt(di); } });
+  document.getElementById('statDay').textContent = bestDay >= 0 ? DAYS_SHORT[bestDay] : '—';
+
+  if (vals.length >= 3) {
+    document.getElementById('insightBox').style.display = 'block';
+    let msg = 'Записано <strong>' + vals.length + ' ' + ruWord(vals.length,['отметка','отметки','отметок']) + '</strong> на этой неделе. ';
+    if (bestPeriodObj) msg += 'Пик энергии — обычно <strong>' + bestPeriodObj.label.toLowerCase() + '</strong> — береги это время. ';
+    if (parseFloat(avg) >= 4) msg += 'В целом <strong>высокоэнергетичная неделя</strong>.';
+    else if (parseFloat(avg) >= 3) msg += 'Энергия <strong>умеренная</strong> — ищи паттерны в провалах.';
+    else msg += 'Энергия <strong>низкая</strong> — подумай об отдыхе и восстановлении.';
+    document.getElementById('insightText').innerHTML = msg;
+  } else {
+    document.getElementById('insightBox').style.display = 'none';
+  }
+}
+function ruWord(n, forms){
+  const n100 = n % 100, n10 = n % 10;
+  if (n100 >= 11 && n100 <= 14) return forms[2];
+  if (n10 === 1) return forms[0];
+  if (n10 >= 2 && n10 <= 4) return forms[1];
+  return forms[2];
+}
+// same 1–5 language the legend already uses, so the raw number under "Средняя" never
+// needs mental translation — "3.4" and "нормально" say the same thing two ways.
+function avgLabel(avg){
+  if (avg >= 4.5) return 'пик';
+  if (avg >= 3.5) return 'хорошо';
+  if (avg >= 2.5) return 'нормально';
+  if (avg >= 1.5) return 'низко';
+  return 'истощение';
+}
+
+// --- Weekly trend (last 8 recorded weeks) — energy only, never sleep ---
+function isEnergyKey(k){ return periodIndexByKey(k.split('_')[2]) !== -1; }
+function allWeekKeysWithData(){
+  const set = new Set();
+  Object.keys(appState.cells).filter(isEnergyKey).forEach(k => set.add(k.split('_')[0]));
+  return [...set].sort();
+}
+function avgForWeek(weekKey){
+  const prefix = weekKey + '_';
+  const vals = Object.entries(appState.cells).filter(([k]) => k.startsWith(prefix) && isEnergyKey(k)).map(([,v]) => v);
+  return vals.length ? vals.reduce((a,b)=>a+b,0) / vals.length : null;
+}
+function renderTrend(){
+  const weeks = allWeekKeysWithData().slice(-8);
+  const el = document.getElementById('trendChart');
+  if (weeks.length < 2) {
+    el.innerHTML = '<div class="et-trend-empty">Тренд появится, когда наберётся хотя бы пара недель с записями.</div>';
+    return;
+  }
+  const curWeekKey = getWeekKey(0);
+  let html = '<div class="et-trend-chart">';
+  weeks.forEach(wk => {
+    const avg = avgForWeek(wk);
+    const pct = Math.max(4, (avg/5)*100);
+    const d = new Date(wk + 'T00:00:00');
+    const isCurrent = wk === curWeekKey;
+    html += '<div class="et-trend-col' + (isCurrent?' current':'') + '">' +
+      '<div class="et-trend-val">' + avg.toFixed(1) + '</div>' +
+      '<div class="et-trend-bar" style="height:' + pct + '%;background:' + trendColor(avg) + ';"></div>' +
+      '<div class="et-trend-lbl">' + fmt(d) + '</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+function trendColor(avg){
+  if (avg >= 4.2) return '#2D6A4F';
+  if (avg >= 3.2) return '#52B788';
+  if (avg >= 2.2) return '#F4A259';
+  return '#E07A5F';
+}
+
+// --- Cross-week pattern detection ---
+function renderPattern(){
+  const box = document.getElementById('patternBox');
+  const entries = Object.entries(appState.cells).filter(([k]) => isEnergyKey(k));
+  const msgs = [];
+
+  if (entries.length >= 15) {
+    const weeksInvolved = new Set(entries.map(([k]) => k.split('_')[0]));
+    if (weeksInvolved.size >= 3) {
+      const daySums = {}, dayCounts = {};
+      entries.forEach(([k, v]) => {
+        const di = parseInt(k.split('_')[1]);
+        daySums[di] = (daySums[di]||0)+v; dayCounts[di] = (dayCounts[di]||0)+1;
+      });
+      const dayAverages = Object.keys(daySums)
+        .filter(di => dayCounts[di] >= 3)
+        .map(di => ({ di: parseInt(di), avg: daySums[di]/dayCounts[di] }));
+
+      if (dayAverages.length >= 3) {
+        const overall = entries.reduce((a,[,v])=>a+v,0) / entries.length;
+        const sorted = dayAverages.slice().sort((a,b)=>a.avg-b.avg);
+        const lowest = sorted[0];
+        if (overall - lowest.avg >= 0.6) {
+          msgs.push('Энергия стабильно ниже по <strong>' + DAYS_SHORT[lowest.di] + '</strong> — так повторяется уже несколько недель.');
+        }
+        const highest = sorted[sorted.length-1];
+        if (highest.avg - overall >= 0.6 && highest.di !== lowest.di) {
+          msgs.push('А выше всего обычно по <strong>' + DAYS_SHORT[highest.di] + '</strong>.');
+        }
+      }
+    }
+  }
+
+  const sleepMsg = sleepPatternMessage();
+  if (sleepMsg) msgs.push(sleepMsg);
+
+  if (!msgs.length) { box.style.display = 'none'; return; }
+  document.getElementById('patternText').innerHTML = msgs.join(' ');
+  box.style.display = 'block';
+}// Compares that day's average energy on days after a good night's sleep vs a bad one —
+// the exact comparison the person asked for: does poor sleep actually show up in the
+// day that follows, in their own data, not as a generic claim.
+function sleepPatternMessage(){
+  const sleepEntries = Object.entries(appState.cells).filter(([k]) => k.split('_')[2] === 'sleep');
+  if (sleepEntries.length < 6) return null;
+
+  const goodDayAvgs = [], badDayAvgs = [];
+  sleepEntries.forEach(([k, sleepVal]) => {
+    const [wk, diStr] = k.split('_');
+    const dayPrefix = wk + '_' + diStr + '_';
+    const dayEnergy = Object.entries(appState.cells)
+      .filter(([ek]) => ek.startsWith(dayPrefix) && isEnergyKey(ek))
+      .map(([,v]) => v);
+    if (!dayEnergy.length) return;
+    const dayAvg = dayEnergy.reduce((a,b)=>a+b,0) / dayEnergy.length;
+    if (sleepVal >= 4) goodDayAvgs.push(dayAvg);
+    else if (sleepVal <= 2) badDayAvgs.push(dayAvg);
+  });
+
+  if (goodDayAvgs.length < 3 || badDayAvgs.length < 3) return null;
+  const goodAvg = goodDayAvgs.reduce((a,b)=>a+b,0) / goodDayAvgs.length;
+  const badAvg = badDayAvgs.reduce((a,b)=>a+b,0) / badDayAvgs.length;
+  if (goodAvg - badAvg < 0.5) return null;
+  return 'После плохого сна энергия днём в среднем <strong>' + badAvg.toFixed(1) + '/5</strong> — против <strong>' + goodAvg.toFixed(1) + '/5</strong> после хорошего.';
+}
+
+// --- Streaks and records — same idea and same wording style as Daykit's own
+// "Регулярность и рекорды", so the two feel like one product family, not two.
+function trackedDatesSet(){
+  const dates = new Set();
+  Object.entries(appState.cells).filter(([k]) => isEnergyKey(k)).forEach(([k]) => {
+    const [wk, diStr] = k.split('_');
+    const d = new Date(wk + 'T00:00:00');
+    d.setDate(d.getDate() + parseInt(diStr));
+    dates.add(d.toISOString().slice(0,10));
+  });
+  return dates;
+}
+function currentStreak(){
+  const dates = trackedDatesSet();
+  const todayStr = new Date().toISOString().slice(0,10);
+  const startAt = dates.has(todayStr) ? 0 : 1;
+  let n = 0;
+  for (let i = startAt; ; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    if (!dates.has(d.toISOString().slice(0,10))) break;
+    n++;
+  }
+  return n;
+}
+function longestStreak(){
+  const dates = [...trackedDatesSet()].sort();
+  let longest = 0, cur = 0, prev = null;
+  dates.forEach(dStr => {
+    const d = new Date(dStr + 'T00:00:00');
+    cur = (prev && Math.round((d - prev) / 86400000) === 1) ? cur + 1 : 1;
+    longest = Math.max(longest, cur);
+    prev = d;
+  });
+  return longest;
+}
+function bestDayRecord(){
+  const dayVals = {};
+  Object.entries(appState.cells).filter(([k]) => isEnergyKey(k)).forEach(([k, v]) => {
+    const [wk, diStr] = k.split('_');
+    const d = new Date(wk + 'T00:00:00'); d.setDate(d.getDate() + parseInt(diStr));
+    const dateStr = d.toISOString().slice(0,10);
+    (dayVals[dateStr] = dayVals[dateStr] || []).push(v);
+  });
+  let best = null;
+  Object.entries(dayVals).forEach(([dateStr, vals]) => {
+    const avg = vals.reduce((a,b)=>a+b,0) / vals.length;
+    if (!best || avg > best.avg) best = { date: dateStr, avg };
+  });
+  return best;
+}
+function renderStreakCard(){
+  const wrap = document.getElementById('streakCard');
+  const cur = currentStreak(), longest = longestStreak(), best = bestDayRecord();
+  if (!cur && !longest && !best) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  wrap.innerHTML =
+    '<div class="et-section-label">Регулярность и рекорды</div>' +
+    '<div class="et-streak-grid">' +
+      '<div class="et-streak-item"><div class="et-streak-val">' + cur + '</div><div class="et-streak-lbl">' + ruWord(cur,['день подряд','дня подряд','дней подряд']) + '</div></div>' +
+      '<div class="et-streak-item"><div class="et-streak-val">' + longest + '</div><div class="et-streak-lbl">рекорд подряд</div></div>' +
+      '<div class="et-streak-item"><div class="et-streak-val">' + (best ? best.avg.toFixed(1) : '—') + '</div><div class="et-streak-lbl">' + (best ? 'лучший день · ' + fmt(new Date(best.date + 'T00:00:00')) : 'лучший день') + '</div></div>' +
+    '</div>';
+}
+
+// --- Week nav ---
+document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; buildTable(); });
+document.getElementById('nextWeek').addEventListener('click', () => { weekOffset++; buildTable(); });
+
+// --- Reset ---
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('resetConfirm').classList.add('visible');
+});
+document.getElementById('cancelReset').addEventListener('click', () => {
+  document.getElementById('resetConfirm').classList.remove('visible');
+});
+document.getElementById('confirmReset').addEventListener('click', () => {
+  appState = { cells: {}, notes: {} };
+  saveAll(appState);
+  document.getElementById('resetConfirm').classList.remove('visible');
+  weekOffset = 0;
+  buildTable();
+});
+
+// --- Reminders (.ics download, driven entirely by the client OS calendar —
+// no server, no push infra, works even with this tab closed) ---
+const remindModal = document.getElementById('remindModal');
+const remindTimesEl = document.getElementById('remindTimes');
+document.getElementById('remindBtn').addEventListener('click', () => {
+  remindTimesEl.innerHTML = PERIODS.map((p,i) => {
+    const hh = String(p.remindH % 24).padStart(2,'0'), mm = String(p.remindM).padStart(2,'0');
+    return '<div class="remind-time-row"><input type="time" id="remindTime' + i + '" value="' + hh + ':' + mm + '"><span>' + p.label + '</span></div>';
+  }).join('');
+  remindModal.classList.add('visible');
+});
+document.getElementById('cancelRemind').addEventListener('click', () => remindModal.classList.remove('visible'));
+document.getElementById('downloadIcs').addEventListener('click', () => {
+  const times = PERIODS.map((p,i) => document.getElementById('remindTime'+i).value || (String(p.remindH).padStart(2,'0')+':'+String(p.remindM).padStart(2,'0')));
+  downloadIcs(times);
+  remindModal.classList.remove('visible');
+});
+function pad2(n){ return String(n).padStart(2,'0'); }
+function icsEscape(s){ return String(s).replace(/([,;])/g,'\\$1'); }
+function buildIcs(times){
+  const now = new Date();
+  const dtstamp = now.getUTCFullYear()+pad2(now.getUTCMonth()+1)+pad2(now.getUTCDate())+'T'+pad2(now.getUTCHours())+pad2(now.getUTCMinutes())+pad2(now.getUTCSeconds())+'Z';
+  let out = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Energy Tracker//RU\r\nCALSCALE:GREGORIAN\r\n';
+  PERIODS.forEach((p, i) => {
+    const t = times[i].split(':');
+    const h = parseInt(t[0])||p.remindH, m = parseInt(t[1])||p.remindM;
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0);
+    const dt = start.getFullYear()+pad2(start.getMonth()+1)+pad2(start.getDate())+'T'+pad2(start.getHours())+pad2(start.getMinutes())+'00';
+    out += 'BEGIN:VEVENT\r\n';
+    out += 'UID:energy-tracker-' + p.key + '-' + now.getTime() + '@local\r\n';
+    out += 'DTSTAMP:' + dtstamp + '\r\n';
+    out += 'DTSTART:' + dt + '\r\n';
+    out += 'RRULE:FREQ=DAILY\r\n';
+    out += 'SUMMARY:' + icsEscape('Энергия: ' + p.label + '?') + '\r\n';
+    out += 'DESCRIPTION:' + icsEscape('Отметь уровень энергии в трекере — ' + p.label.toLowerCase() + ', ' + p.range) + '\r\n';
+    out += 'END:VEVENT\r\n';
+  });
+  out += 'END:VCALENDAR\r\n';
+  return out;
+}
+function downloadIcs(times){
+  const ics = buildIcs(times);
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'energy-tracker-reminders.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// --- CSV export — the data is entirely local, so this is the only way to get it out
+// of one browser (back it up, move device, or bring it into a spreadsheet/BI tool).
+// Also a small but real trust signal for B2B: nothing is locked in.
+// Fully Russian, self-documenting (a real date + a text label next to every number,
+// not just the raw 1–5), and defensive against orphaned period keys left over from
+// an earlier version of the tool — those are skipped rather than leaking a raw
+// English key into an otherwise all-Russian file.
+function csvEscape(s){ s = String(s == null ? '' : s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }
+function buildCsv(){
+  const rows = [['Дата','День недели','Тип','Раздел','Время','Уровень','Значение','Заметка']];
+  Object.keys(appState.cells).sort().forEach(key => {
+    const [wk, diStr, pKey] = key.split('_');
+    const di = parseInt(diStr);
+    const d = new Date(wk + 'T00:00:00'); d.setDate(d.getDate() + di);
+    const dateStr = d.toISOString().slice(0,10);
+    const level = appState.cells[key];
+    let type, section, range, valueLabel;
+    if (pKey === 'sleep') {
+      type = 'Сон'; section = 'Сон (прошлая ночь)'; range = '—';
+      valueLabel = SLEEP_LABELS[level] || '';
+    } else {
+      const period = PERIODS[periodIndexByKey(pKey)];
+      if (!period) return; // orphaned key from an earlier period layout — skip, don't leak it raw
+      type = 'Энергия'; section = period.label; range = period.range;
+      valueLabel = ENERGY_LABELS[level] || '';
+    }
+    rows.push([dateStr, DAYS_SHORT[di], type, section, range, level, valueLabel, appState.notes[key] || '']);
+  });
+  return rows.map(r => r.map(csvEscape).join(',')).join('\r\n');
+}
+document.getElementById('exportCsv').addEventListener('click', (e) => {
+  e.preventDefault();
+  const csv = '\uFEFF' + buildCsv(); // BOM so Excel opens Cyrillic correctly
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'energy-tracker-data.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+// --- Init ---
+buildTable();
+setInterval(updateNowButton, 60000);
+
+// fires once per browser, ever — a dedicated localStorage flag rather than something
+// inside appState, since "was this tool ever opened" shouldn't be wiped by "Сбросить трекер"
+try {
+  if (!localStorage.getItem('energy_tracker_opened_sent')) {
+    localStorage.setItem('energy_tracker_opened_sent', '1');
+    sendAnalyticsEvent('energy_tracker_opened', {});
+  }
+} catch(e) {}
+
+if (TEAM_CONTEXT.team) {
+  const notice = document.createElement('div');
+  notice.className = 'et-team-notice';
+  notice.innerHTML = '<b>Вы используете трекер энергии от команды «' + TEAM_CONTEXT.team.replace(/</g,'&lt;') + '»</b><p>Ваши личные отметки не передаются руководителю. Команда получает только общую обезличенную статистику, и только при достаточном числе участников.</p>';
+  document.querySelector('.et-wrap').insertBefore(notice, document.querySelector('.et-now-block'));
+}
 </script>
 </body>
 </html>
